@@ -34,7 +34,7 @@ android {
 }
 
 group = "com.github.Usman228811"
-version = "v1.0.0"
+version = "v1.0.1"
 
 
 afterEvaluate {
@@ -44,7 +44,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.Usman228811"
                 artifactId = "app-purchase-kit"
-                version = "v1.0.0"
+                version = "v1.0.1"
             }
         }
     }

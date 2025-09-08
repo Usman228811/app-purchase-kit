@@ -58,7 +58,7 @@ class BillingRepositoryImpl private constructor(
     private val _productPriceFlow = MutableStateFlow(PurchasePriceModel())
 
 
-    private val _appPurchased = Channel<Boolean>()
+    private val _appPurchased = MutableStateFlow(false)
 
     private var purchaseSku: ProductDetails? = null
     private lateinit var billingClient: BillingClient
@@ -191,7 +191,7 @@ class BillingRepositoryImpl private constructor(
         preference.isAppPurchased = isPurchased
         if (isPurchased) {
 //            context.userAnalytics("Premium_buy_successful")
-            coroutineScope.launch { _appPurchased.send(true) }
+            coroutineScope.launch { _appPurchased.value = true }
         }
     }
 

@@ -42,11 +42,7 @@ fun MainScreen() {
 
     val factory = remember { MainViewModelFactory() }
     val viewModel: MainViewModel = viewModel(factory = factory)
-    val price by  viewModel.price.collectAsState()
-    val isPurchased by  viewModel.isPurchased.collectAsState()
-    val monthlyPrice by  viewModel.monthly.collectAsState()
-    val yearlyPrice by  viewModel.yearly.collectAsState()
-    val buttonText by  viewModel.buttonText.collectAsState()
+    val mainState by  viewModel.mainState.collectAsState()
     val activity = LocalActivity.current as Activity
 
     LaunchedEffect(Unit) {
@@ -64,12 +60,12 @@ fun MainScreen() {
 
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "Is Purchased: $isPurchased"
+            text = "Is Purchased: ${mainState.isPurchased}"
         )
 
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "Price: $price"
+            text = "Price: ${mainState.price}"
         )
 
         HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp), thickness = 2.dp)
@@ -82,12 +78,12 @@ fun MainScreen() {
 
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "Monthly Price: $monthlyPrice"
+            text = "Monthly Price: ${mainState.monthlyPrice}"
         )
 
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "Price: $yearlyPrice"
+            text = "Price: ${mainState.yearlyPrice}"
         )
 
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
@@ -96,7 +92,7 @@ fun MainScreen() {
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = buttonText
+                text = mainState.buttonText
             )
         }
 

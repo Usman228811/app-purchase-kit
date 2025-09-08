@@ -1,7 +1,6 @@
 package com.example.inapp
 
 import android.app.Activity
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -19,29 +18,28 @@ class MainViewModelFactory : ViewModelProvider.Factory {
     }
 }
 
+data class MainState(
+    val selectedButtonPos: Int = 0,
+    val isPurchased: Boolean = false,
+    val price: String = "",
+    val monthlyPrice: String = "",
+    val yearlyPrice: String = "",
+    val subscribedId: String = "",
+    val buttonText: String = "",
+
+    )
+
 class MainViewModel() : ViewModel() {
 
-    private var _selectedButtonPos = MutableStateFlow(0)
-    val  selectedButtonPos = _selectedButtonPos.asStateFlow()
-    private var _isPurchased = MutableStateFlow(false)
-    val  isPurchased = _isPurchased.asStateFlow()
-    private var _price = MutableStateFlow("")
-    val  price = _price.asStateFlow()
-    private var _monthly = MutableStateFlow("")
-    val  monthly = _monthly.asStateFlow()
-    private var _yearly = MutableStateFlow("")
-    val  yearly = _yearly.asStateFlow()
-    private var _subscribedId = MutableStateFlow("")
-    val  subscribedId = _subscribedId.asStateFlow()
-    private var _buttonText = MutableStateFlow("")
-    val  buttonText = _buttonText.asStateFlow()
+    private val _mainState = MutableStateFlow(MainState())
+    val mainState = _mainState.asStateFlow()
 
     private val subscriptionMap = mapOf(
         0 to "monthly",
         1 to "yearly",
     )
 
-    private fun selectedId() = subscriptionMap[selectedButtonPos.value]
+    private fun selectedId() = subscriptionMap[mainState.value.selectedButtonPos]
 
     init {
         PurchaseKit.oneTimePurchaseHelper.initBilling("one_time_purchase_id")
@@ -52,28 +50,42 @@ class MainViewModel() : ViewModel() {
         viewModelScope.apply {
 
             launch {
-                PurchaseKit.oneTimePurchaseHelper.appPurchased.collectLatest {
-                    _isPurchased.value = it
+                PurchaseKit.oneTimePurchaseHelper.appPurchased.collectLatest { isPurchased ->
+                    _mainState.update {
+                        it.copy(
+                            isPurchased = isPurchased
+                        )
+                    }
                 }
             }
 
             launch {
                 PurchaseKit.oneTimePurchaseHelper.productPriceFlow.collectLatest { model ->
-                    _price.value = model.price
-
+                    _mainState.update {
+                        it.copy(
+                            price = model.price
+                        )
+                    }
                 }
             }
 
             launch {
                 PurchaseKit.subscriptionHelper.subscriptionProducts.collectLatest {
-
-                    _monthly.value = getBillingPrice("monthly", "P1M")
-                    _yearly.value = getBillingPrice("yearly", "P1Y")
+                    _mainState.update {
+                        it.copy(
+                            monthlyPrice = getBillingPrice("monthly", "P1M"),
+                            yearlyPrice = getBillingPrice("yearly", "P1Y")
+                        )
+                    }
                 }
             }
             launch {
                 PurchaseKit.subscriptionHelper.subscribedId.collectLatest { subscribedId ->
-                    _subscribedId.value = subscribedId
+                    _mainState.update {
+                        it.copy(
+                            subscribedId = subscribedId
+                        )
+                    }
                 }
             }
 
@@ -81,19 +93,24 @@ class MainViewModel() : ViewModel() {
                 PurchaseKit.subscriptionHelper.historyFetched.collectLatest {
 
                     val buttonText = when {
-                        subscribedId.value.isEmpty() -> "subscribe"
-                        subscribedId.value == selectedId() -> "cancel subscription"
+                        mainState.value.subscribedId.isEmpty() -> "subscribe"
+                        mainState.value.subscribedId == selectedId() -> "cancel subscription"
                         PurchaseKit.subscriptionHelper.isSubscriptionUpdateSupported() -> "update subscription"
-                        else -> buttonText.value // fallback to existing text
+                        else -> mainState.value.buttonText // fallback to existing text
                     }
-                    _buttonText.value = buttonText
+                    _mainState.update {
+                        it.copy(
+                            buttonText = buttonText
+                        )
+                    }
                 }
             }
         }
     }
 
     private fun getBillingPrice(productId: String, billingPeriod: String): String {
-        return PurchaseKit.subscriptionHelper.getBillingPrice(productId, billingPeriod).ifEmpty { "..." }
+        return PurchaseKit.subscriptionHelper.getBillingPrice(productId, billingPeriod)
+            .ifEmpty { "..." }
 
 
     }
