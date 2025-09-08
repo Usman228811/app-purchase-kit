@@ -74,7 +74,7 @@ class BillingRepositoryImpl private constructor(
     }
 
     override fun appPurchased(): Flow<Boolean> {
-        return _appPurchased.receiveAsFlow()
+        return _appPurchased.asStateFlow()
     }
 
     private val isBillingClientInitialized: Boolean
