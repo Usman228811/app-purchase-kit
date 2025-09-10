@@ -116,7 +116,7 @@ class MainViewModel() : ViewModel() {
     }
 
     fun loadSubscriptionProducts(activity: Activity, list: List<String>) {
-        PurchaseKit.subscriptionHelper.loadProducts(activity, list)
+        PurchaseKit.subscriptionHelper.initBilling(activity, list)
     }
 
     fun purchase(activity: Activity) {

@@ -7,16 +7,17 @@ import com.android.billingclient.api.Purchase
 
 interface SubscriptionRepository {
     fun setBillingListener(activity: Activity, listener: SubscriptionListener?)
-    fun querySubscriptionProducts(productIds: List<String>)
-    fun querySubscriptionHistory()
-    fun purchaseProduct(skuDetails: ProductDetails)
-    fun changeSubscriptionPlan(skuDetails: ProductDetails)
+    fun querySubscriptionProducts(activity: Activity,productIds: List<String>)
+    fun querySubscriptionHistory(activity: Activity)
+    fun purchaseProduct(activity: Activity,skuDetails: ProductDetails)
+    fun changeSubscriptionPlan(activity: Activity,skuDetails: ProductDetails)
     fun getSelectedSubscriptionId(selectedPosition: Int): String
     fun isSubscriptionSupported(): Boolean
     fun isSubscriptionUpdateSupported(): Boolean
-    fun setSubscribed(purchase: Purchase)
-    fun acknowledgedPurchase(purchase: Purchase)
+    fun setSubscribed(activity: Activity,purchase: Purchase)
+    fun acknowledgedPurchase(activity: Activity,purchase: Purchase)
     fun viewUrl( activity: Activity, url: String)
+
 
 }
 

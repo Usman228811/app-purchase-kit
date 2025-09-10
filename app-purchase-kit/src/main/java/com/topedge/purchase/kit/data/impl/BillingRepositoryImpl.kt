@@ -156,17 +156,22 @@ class BillingRepositoryImpl private constructor(
             return
         }
 
-        val billingParams = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(
-                listOf(
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                        .setProductDetails(purchaseSku!!)
-                        .build()
-                )
-            )
-            .build()
+        purchaseSku?.let { details ->
 
-        billingClient.launchBillingFlow(activity, billingParams)
+            val billingParams = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(
+                    listOf(
+                        BillingFlowParams.ProductDetailsParams.newBuilder()
+                            .setProductDetails(details)
+                            .build()
+                    )
+                )
+                .build()
+
+            billingClient.launchBillingFlow(activity, billingParams)
+        }?: run {
+            context.showToast(activity.getString(R.string.try_again))
+        }
     }
 
     private fun checkProductPurchaseHistory() {

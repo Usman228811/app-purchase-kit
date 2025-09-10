@@ -34,12 +34,12 @@ class SubscriptionHelper private constructor(
     val historyFetched = queryProducts.historyFetched
     val subscribedId = queryProducts.subscribedId
 
-    fun loadProducts(activity: Activity, productIds: List<String>) {
+    fun initBilling(activity: Activity, productIds: List<String>) {
         queryProducts(activity, productIds)
     }
 
-    fun querySubscriptionProducts() {
-        queryProducts.querySubscriptionProducts()
+    fun querySubscriptionProducts(activity: Activity,) {
+        queryProducts.querySubscriptionProducts(activity)
     }
 
     fun isSubscriptionUpdateSupported() = queryProducts.isSubscriptionUpdateSupported()
@@ -66,7 +66,7 @@ class SubscriptionHelper private constructor(
 
                 subscriptionProducts.value.products?.let { products ->
                     products[productId]?.let {
-                        purchaseProduct(it)
+                        purchaseProduct(activity,it)
                     }
                 }
 
@@ -76,7 +76,7 @@ class SubscriptionHelper private constructor(
 
                 subscriptionProducts.value.products?.let { products ->
                     products[productId]?.let {
-                        purchaseProduct.changeSubscriptionPlan(it)
+                        purchaseProduct.changeSubscriptionPlan(activity,it)
                     }
                 }
             }

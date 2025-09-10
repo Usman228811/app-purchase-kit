@@ -54,7 +54,7 @@ class QuerySubscriptionProductsUseCase private constructor(
             activity = activity,
             object : SubscriptionListener {
                 override fun onBillingInitialized() {
-                    repository.querySubscriptionProducts(productIds)
+                    repository.querySubscriptionProducts(activity, productIds)
                 }
 
                 override fun onQueryProductSuccess(skuList: Map<String, ProductDetails>) {
@@ -63,7 +63,7 @@ class QuerySubscriptionProductsUseCase private constructor(
                             products = skuList
                         )
                     }
-                    repository.querySubscriptionHistory()
+                    repository.querySubscriptionHistory(activity)
 
                 }
 
@@ -74,10 +74,10 @@ class QuerySubscriptionProductsUseCase private constructor(
                 override fun checkPurchaseStatus(purchase: Purchase) {
                     try {
                         if (purchase.isAcknowledged) {
-                            repository.setSubscribed(purchase)
+                            repository.setSubscribed(activity,purchase)
                             onSubscriptionPurchasedFetched()
                         } else {
-                            repository.acknowledgedPurchase(purchase)
+                            repository.acknowledgedPurchase(activity,purchase)
                         }
                     } catch (_: Exception) {
                     }
@@ -101,8 +101,8 @@ class QuerySubscriptionProductsUseCase private constructor(
 
 
     fun isSubscriptionUpdateSupported() = repository.isSubscriptionUpdateSupported()
-    fun querySubscriptionProducts() {
-        repository.querySubscriptionHistory()
+    fun querySubscriptionProducts(activity: Activity) {
+        repository.querySubscriptionHistory(activity)
     }
 
     fun getBillingPrice(productId: String, billingPeriod: String): String {
