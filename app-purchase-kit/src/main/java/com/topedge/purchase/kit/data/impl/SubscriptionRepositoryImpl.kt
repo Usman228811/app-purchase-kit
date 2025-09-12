@@ -4,6 +4,7 @@ package com.topedge.purchase.kit.data.impl
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.text.TextUtils
 import androidx.core.net.toUri
 import com.android.billingclient.api.AcknowledgePurchaseParams
@@ -18,6 +19,8 @@ import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.topedge.purchase.kit.R
+import com.topedge.purchase.kit.core.utils.showToast
 import com.topedge.purchase.kit.domain.repo.SubscriptionListener
 import com.topedge.purchase.kit.domain.repo.SubscriptionRepository
 
@@ -57,13 +60,12 @@ class SubscriptionRepositoryImpl private constructor(
             false
         } else subscriptionClient.isReady
 
-    override fun purchaseProduct(activity: Activity,skuDetails: ProductDetails) {
+    override fun purchaseProduct(activity: Activity, skuDetails: ProductDetails) {
         try {
             if (isBillingClientDead) {
                 return
             }
-            skuDetails.subscriptionOfferDetails?.get(0)?.let {
-
+            val billingResult = skuDetails.subscriptionOfferDetails?.get(0)?.let {
                 val offerToken = it.offerToken
                 subscriptionClient.launchBillingFlow(
                     activity,
@@ -75,20 +77,32 @@ class SubscriptionRepositoryImpl private constructor(
                                 .build()
                         )
                     ).build()
-                ).responseCode
+                )
+            }
+
+            billingResult?.let {
+                if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                    context.showToast(activity.getString(R.string.try_again))
+                }
+            }
+
+        } catch (e: IntentSender.SendIntentException) {
+            activity.let {
+                context.showToast(activity.getString(R.string.try_again))
             }
 
         } catch (e: Exception) {
-            e.printStackTrace()
+            activity.let {
+                context.showToast(activity.getString(R.string.try_again))
+            }
         }
     }
 
-    override fun changeSubscriptionPlan(activity: Activity,skuDetails: ProductDetails) {
+    override fun changeSubscriptionPlan(activity: Activity, skuDetails: ProductDetails) {
         try {
             if (isBillingClientDead) {
                 return
             }
-
             val offerToken = skuDetails.subscriptionOfferDetails?.get(0)!!.offerToken
             val list: MutableList<BillingFlowParams.ProductDetailsParams> = ArrayList()
             list.add(
@@ -106,7 +120,21 @@ class SubscriptionRepositoryImpl private constructor(
                 )
                 .setProductDetailsParamsList(list)
                 .build()
-        } catch (ignored: Exception) {
+            if (subscriptionClient.launchBillingFlow(
+                    activity, flowParams
+                ).responseCode == BillingClient.BillingResponseCode.OK
+            ) {
+//                JavaUtils.sendAnalytics(context, "SUBSCRIBE_UPDATE_CLICK")
+            }
+        } catch (e: IntentSender.SendIntentException) {
+            activity.let {
+                context.showToast(activity.getString(R.string.try_again))
+            }
+
+        } catch (e: Exception) {
+            activity.let {
+                context.showToast(activity.getString(R.string.try_again))
+            }
         }
     }
 
@@ -119,7 +147,7 @@ class SubscriptionRepositoryImpl private constructor(
         }
     }
 
-    override fun querySubscriptionProducts(activity: Activity,productIds: List<String>) {
+    override fun querySubscriptionProducts(activity: Activity, productIds: List<String>) {
         this.productIds = productIds
         if (isBillingClientDead) {
             return
@@ -166,7 +194,7 @@ class SubscriptionRepositoryImpl private constructor(
     }
 
 
-    private fun resetAllPurchases(activity: Activity,) {
+    private fun resetAllPurchases(activity: Activity) {
         subscribeProductToken = ""
         activity?.runOnUiThread {
             subscriptionListener?.updatePref("")
@@ -179,7 +207,7 @@ class SubscriptionRepositoryImpl private constructor(
         } else ""
     }
 
-    override fun querySubscriptionHistory(activity: Activity,) {
+    override fun querySubscriptionHistory(activity: Activity) {
         if (isBillingClientDead) {
             return
         }
@@ -200,12 +228,12 @@ class SubscriptionRepositoryImpl private constructor(
                                             )
                                         ) {
                                             if (purchase.isAcknowledged) {
-                                                setSubscribed(activity,purchase)
+                                                setSubscribed(activity, purchase)
                                                 activity.runOnUiThread {
                                                     subscriptionListener?.onSubscriptionPurchasedFetched()
                                                 }
                                             } else {
-                                                acknowledgedPurchase(activity,purchase)
+                                                acknowledgedPurchase(activity, purchase)
                                             }
                                             return
                                         }
@@ -225,7 +253,7 @@ class SubscriptionRepositoryImpl private constructor(
         }
     }
 
-    override fun setSubscribed(activity: Activity,purchase: Purchase) {
+    override fun setSubscribed(activity: Activity, purchase: Purchase) {
         subscribeProductToken = purchase.purchaseToken
         activity.runOnUiThread {
             subscriptionListener?.updatePref(getSku(purchase.products))
@@ -293,7 +321,7 @@ class SubscriptionRepositoryImpl private constructor(
         return false
     }
 
-    override fun acknowledgedPurchase(activity: Activity,purchase: Purchase) {
+    override fun acknowledgedPurchase(activity: Activity, purchase: Purchase) {
         if (isBillingClientDead) {
             return
         }
@@ -302,7 +330,7 @@ class SubscriptionRepositoryImpl private constructor(
             .build()
         subscriptionClient.acknowledgePurchase(acknowledgePurchaseParams) { billingResult: BillingResult ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                setSubscribed(activity,purchase)
+                setSubscribed(activity, purchase)
                 activity.runOnUiThread {
                     subscriptionListener?.onSubscriptionPurchasedFetched()
                 }
@@ -323,7 +351,7 @@ class SubscriptionRepositoryImpl private constructor(
     }
 
 
-    private fun setupConnection(activity: Activity,) {
+    private fun setupConnection(activity: Activity) {
         try {
             if (!::subscriptionClient.isInitialized) {
                 subscriptionClient = BillingClient

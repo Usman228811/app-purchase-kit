@@ -2,6 +2,7 @@ package com.topedge.purchase.kit.data.impl
 
 import android.app.Activity
 import android.content.Context
+import android.content.IntentSender
 import android.util.Log
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
@@ -146,32 +147,48 @@ class BillingRepositoryImpl private constructor(
     }
 
     override fun purchaseProduct(activity: Activity?) {
-        if (activity == null) return
-        if (!internetHelper.isConnected) {
-            context.showToast(activity.getString(R.string.no_internet))
-            return
-        }
-        if (!isBillingClientReady() || purchaseSku == null) {
-            context.showToast(activity.getString(R.string.try_again))
-            return
-        }
+        try {
+            if (activity == null) return
+            if (!internetHelper.isConnected) {
+                context.showToast(activity.getString(R.string.no_internet))
+                return
+            }
+            if (!isBillingClientReady() || purchaseSku == null) {
+                context.showToast(activity.getString(R.string.try_again))
+                return
+            }
 
-        purchaseSku?.let { details ->
+            purchaseSku?.let { details ->
 
-            val billingParams = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(
-                    listOf(
-                        BillingFlowParams.ProductDetailsParams.newBuilder()
-                            .setProductDetails(details)
-                            .build()
+                val billingParams = BillingFlowParams.newBuilder()
+                    .setProductDetailsParamsList(
+                        listOf(
+                            BillingFlowParams.ProductDetailsParams.newBuilder()
+                                .setProductDetails(details)
+                                .build()
+                        )
                     )
-                )
-                .build()
+                    .build()
+                val billingResult = billingClient.launchBillingFlow(activity, billingParams)
+                if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                    context.showToast(activity.getString(R.string.try_again))
 
-            billingClient.launchBillingFlow(activity, billingParams)
-        }?: run {
-            context.showToast(activity.getString(R.string.try_again))
+                }
+            } ?: run {
+                context.showToast(activity.getString(R.string.try_again))
+            }
+        } catch (e: IntentSender.SendIntentException) {
+            activity?.let {
+                context.showToast(activity.getString(R.string.try_again))
+            }
+
+        } catch (e: Exception) {
+            activity?.let {
+                context.showToast(activity.getString(R.string.try_again))
+            }
         }
+
+
     }
 
     private fun checkProductPurchaseHistory() {

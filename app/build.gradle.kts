@@ -9,7 +9,8 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.inapp"
+        applicationId = "com.plant.identifier.scanplant"
+//        applicationId = "com.example.inapp"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

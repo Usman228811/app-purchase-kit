@@ -42,7 +42,7 @@ class MainViewModel() : ViewModel() {
     private fun selectedId() = subscriptionMap[mainState.value.selectedButtonPos]
 
     init {
-        PurchaseKit.oneTimePurchaseHelper.initBilling("one_time_purchase_id")
+        PurchaseKit.oneTimePurchaseHelper.initBilling("android.test.purchased")
         collections()
     }
 
@@ -108,18 +108,30 @@ class MainViewModel() : ViewModel() {
         }
     }
 
+    fun updateSelectedButtonPos(activity: Activity,selectedButtonPos: Int) {
+        _mainState.update {
+            it.copy(
+                selectedButtonPos = selectedButtonPos
+            )
+        }
+        PurchaseKit.subscriptionHelper.querySubscriptionProducts(activity)
+    }
+
     private fun getBillingPrice(productId: String, billingPeriod: String): String {
         return PurchaseKit.subscriptionHelper.getBillingPrice(productId, billingPeriod)
             .ifEmpty { "..." }
-
-
     }
+
+
 
     fun loadSubscriptionProducts(activity: Activity, list: List<String>) {
         PurchaseKit.subscriptionHelper.initBilling(activity, list)
     }
 
-    fun purchase(activity: Activity) {
+    fun purchaseSubscription(activity: Activity) {
         PurchaseKit.subscriptionHelper.purchase(activity, selectedId())
+    }
+    fun purchaseLifeTime(activity: Activity) {
+        PurchaseKit.oneTimePurchaseHelper.purchaseProduct(activity)
     }
 }
