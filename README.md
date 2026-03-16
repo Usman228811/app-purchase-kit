@@ -12,7 +12,7 @@ To integrate the Monetization Kit into your project, include the following in yo
 
 ```kotlin
 dependencies {
-    implementation("com.github.Usman228811:app-purchase-kit:v1.0.4")
+    implementation("com.github.Usman228811:app-purchase-kit:v1.0.5")
 }
 ```
 
@@ -109,9 +109,9 @@ class SubscriptionViewModel : ViewModel() {
                 PurchaseKit.subscriptionHelper.subscriptionProducts.collectLatest {
                     _state.update {
                         it.copy(
-                            weeklyPrice = getBillingPrice("weekly_subscription2", "P1W"),
-                            monthlyPrice = getBillingPrice("monthly1_subscription", "P1M"),
-                            yearlyPrice = getBillingPrice("yearly_subscription", "P1Y")
+                            weeklyPrice = getBillingPrice("weekly_subscription2", "","P1W").price,
+                            monthlyPrice = getBillingPrice("monthly1_subscription","" ,"P1M").price,
+                            yearlyPrice = getBillingPrice("yearly_subscription", "", "P1Y").price    
                         )
                     }
                 }
@@ -143,8 +143,14 @@ class SubscriptionViewModel : ViewModel() {
         PurchaseKit.subscriptionHelper.initBilling(activity, list)
     }
 
-    private fun getBillingPrice(productId: String, billingPeriod: String): String {
-        return PurchaseKit.subscriptionHelper.getBillingPrice(productId, billingPeriod).ifEmpty { "..." }
+   private fun getBillingPrice(
+        productId: String,
+        offerId: String,
+        billingPeriod: String
+    ): PriceModel {
+        return PurchaseKit.subscriptionHelper.getBillingPrice(productId, offerId, billingPeriod)
+
+
     }
 
     fun updateSelectedButtonPos(activity:Activity, selectedButtonPos: Int) {
