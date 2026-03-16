@@ -20,3 +20,8 @@ class PurchaseProductUseCase private constructor(
         }
     }
 }
+
+
+//class PurchaseProductUseCase(private val billingRepository: BillingRepository) {
+//    operator fun invoke(activity: Activity?) = billingRepository.purchaseProduct(activity)
+//}

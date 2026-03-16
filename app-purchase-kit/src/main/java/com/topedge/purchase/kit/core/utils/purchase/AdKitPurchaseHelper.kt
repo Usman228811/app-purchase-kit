@@ -1,13 +1,13 @@
 package com.topedge.purchase.kit.core.utils.purchase
 
 import android.app.Activity
-import android.content.Context
+import android.app.Application
 import com.topedge.purchase.kit.data.impl.BillingRepositoryImpl
 import com.topedge.purchase.kit.domain.repo.BillingRepository
 import com.topedge.purchase.kit.domain.usecase.InitBillingUseCase
 import com.topedge.purchase.kit.domain.usecase.PurchaseProductUseCase
 
-class OneTimePurchaseHelper private constructor(
+class AdKitPurchaseHelper private constructor(
     private val init: InitBillingUseCase,
     private val purchase: PurchaseProductUseCase,
     private val billingRepository: BillingRepository
@@ -22,17 +22,17 @@ class OneTimePurchaseHelper private constructor(
 
     companion object {
         @Volatile
-        private var instance: OneTimePurchaseHelper? = null
+        private var instance: AdKitPurchaseHelper? = null
 
         internal fun getInstance(
-            context: Context,
-        ): OneTimePurchaseHelper {
+            context: Application,
+        ): AdKitPurchaseHelper {
             val billingRepo = BillingRepositoryImpl.getInstance(
-                context,
+                context.applicationContext,
             )
 
             return instance ?: synchronized(this) {
-                instance ?: OneTimePurchaseHelper(
+                instance ?: AdKitPurchaseHelper(
                     init = InitBillingUseCase.getInstance(billingRepo),
                     purchase = PurchaseProductUseCase.getInstance(billingRepo),
                     billingRepository = billingRepo

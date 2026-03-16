@@ -1,28 +1,29 @@
 package com.topedge.purchase.kit.core.utils.purchase
 
 import android.app.Activity
-import android.content.Context
-import com.topedge.purchase.kit.core.utils.init.PurchaseKit
+import android.app.Application
+import com.topedge.purchase.kit.core.utils.init.PurchaseKit.internetHelper
+import com.topedge.purchase.kit.domain.usecase.PriceModel
 import com.topedge.purchase.kit.domain.usecase.PurchaseSubscriptionUseCase
 import com.topedge.purchase.kit.domain.usecase.QuerySubscriptionProductsUseCase
 
-class SubscriptionHelper private constructor(
+class AdKitSubscriptionHelper private constructor(
     private val queryProducts: QuerySubscriptionProductsUseCase,
     private val purchaseProduct: PurchaseSubscriptionUseCase
 ) {
 
     companion object {
         @Volatile
-        private var instance: SubscriptionHelper? = null
+        private var instance: AdKitSubscriptionHelper? = null
 
 
         internal fun getInstance(
-            context: Context
-        ): SubscriptionHelper {
+            context: Application
+        ): AdKitSubscriptionHelper {
             return instance ?: synchronized(this) {
-                instance ?: SubscriptionHelper(
-                    QuerySubscriptionProductsUseCase.getInstance(context),
-                    PurchaseSubscriptionUseCase.getInstance(context),
+                instance ?: AdKitSubscriptionHelper(
+                    QuerySubscriptionProductsUseCase.getInstance(context.applicationContext),
+                    PurchaseSubscriptionUseCase.getInstance(context.applicationContext),
 
                     ).also { instance = it }
             }
@@ -33,19 +34,24 @@ class SubscriptionHelper private constructor(
     val subscriptionProducts = queryProducts.products
     val historyFetched = queryProducts.historyFetched
     val subscribedId = queryProducts.subscribedId
+    val isAppSubscribed = queryProducts.isAppSubscribed
 
     fun initBilling(activity: Activity, productIds: List<String>) {
         queryProducts(activity, productIds)
     }
 
-    fun querySubscriptionProducts(activity: Activity,) {
+    fun querySubscriptionProducts(activity: Activity) {
         queryProducts.querySubscriptionProducts(activity)
     }
 
     fun isSubscriptionUpdateSupported() = queryProducts.isSubscriptionUpdateSupported()
 
-    fun getBillingPrice(productId: String, billingPeriod: String): String {
-        return queryProducts.getBillingPrice(productId, billingPeriod)
+    fun getBillingPrice(
+        productId: String,
+        offerId: String = "",
+        billingPeriod: String
+    ): PriceModel {
+        return queryProducts.getBillingPrice(productId, offerId, billingPeriod)
     }
 
     fun purchase(
@@ -54,19 +60,22 @@ class SubscriptionHelper private constructor(
     ) {
 
         when {
-            PurchaseKit.internetHelper.isConnected.not() || productId == null -> {
+            internetHelper.isConnected.not() || productId == null -> {
 
             }
 
             subscribedId.value == productId -> {
-                purchaseProduct.viewUrl(activity,"https://play.google.com/store/account/subscriptions?sku=${productId}&package=${activity.packageName}")
+                purchaseProduct.viewUrl(
+                    activity,
+                    "https://play.google.com/store/account/subscriptions?sku=${productId}&package=${activity.packageName}"
+                )
             }
 
             subscribedId.value == "" -> {
 
                 subscriptionProducts.value.products?.let { products ->
                     products[productId]?.let {
-                        purchaseProduct(activity,it)
+                        purchaseProduct(activity, it)
                     }
                 }
 
@@ -76,7 +85,7 @@ class SubscriptionHelper private constructor(
 
                 subscriptionProducts.value.products?.let { products ->
                     products[productId]?.let {
-                        purchaseProduct.changeSubscriptionPlan(activity,it)
+                        purchaseProduct.changeSubscriptionPlan(activity, it)
                     }
                 }
             }

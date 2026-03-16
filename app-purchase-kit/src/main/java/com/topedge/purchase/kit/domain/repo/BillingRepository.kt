@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 data class PurchasePriceModel(val price: String = "")
 
+// domain/repository/BillingRepository.kt
 interface BillingRepository {
     fun productPriceFlow(): StateFlow<PurchasePriceModel>
     fun appPurchased(): Flow<Boolean>

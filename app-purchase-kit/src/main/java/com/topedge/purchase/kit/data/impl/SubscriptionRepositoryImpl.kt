@@ -1,6 +1,5 @@
 package com.topedge.purchase.kit.data.impl
 
-
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -26,10 +25,11 @@ import com.topedge.purchase.kit.domain.repo.SubscriptionRepository
 
 
 class SubscriptionRepositoryImpl private constructor(
-    mContext: Context
+    private val context: Context
 ) : SubscriptionRepository, PurchasesUpdatedListener {
 
-    private val context = mContext.applicationContext
+
+    private var mActivity: Activity ?= null
 
     companion object {
         @Volatile
@@ -50,6 +50,8 @@ class SubscriptionRepositoryImpl private constructor(
     private var isBillingReady: Boolean = false
     private lateinit var subscriptionClient: BillingClient
     private var subscriptionListener: SubscriptionListener? = null
+
+    //    private var mActivity: Activity? = null
     private var productIds: List<String>? = null
     private var subscribeProductToken = ""
 
@@ -196,7 +198,7 @@ class SubscriptionRepositoryImpl private constructor(
 
     private fun resetAllPurchases(activity: Activity) {
         subscribeProductToken = ""
-        activity?.runOnUiThread {
+        activity.runOnUiThread {
             subscriptionListener?.updatePref("")
         }
     }
@@ -261,20 +263,20 @@ class SubscriptionRepositoryImpl private constructor(
     }
 
     override fun onPurchasesUpdated(billingResult: BillingResult, list: List<Purchase>?) {
-//        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-//            if (!list.isNullOrEmpty()) {
-//                for (purchase in list) {
-//                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
-//                        checkSubscriptionsId(getSku(purchase.products))
-//                    ) {
-//                        mActivity?.runOnUiThread {
-//                            subscriptionListener?.checkPurchaseStatus(purchase)
-//                        }
-//                        break
-//                    }
-//                }
-//            }
-//        }
+        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+            if (!list.isNullOrEmpty()) {
+                for (purchase in list) {
+                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+                        checkSubscriptionsId(getSku(purchase.products))
+                    ) {
+                        mActivity?.runOnUiThread {
+                            subscriptionListener?.checkPurchaseStatus(purchase)
+                        }
+                        break
+                    }
+                }
+            }
+        }
     }
 
     override fun getSelectedSubscriptionId(selectedPosition: Int): String {
@@ -342,6 +344,7 @@ class SubscriptionRepositoryImpl private constructor(
         activity: Activity,
         listener: SubscriptionListener?
     ) {
+        mActivity = activity
         this.subscriptionListener = listener
         if (isBillingReady) {
             subscriptionListener?.onBillingInitialized()
@@ -350,6 +353,10 @@ class SubscriptionRepositoryImpl private constructor(
         }
     }
 
+
+//    init {
+//        setupConnection()
+//    }
 
     private fun setupConnection(activity: Activity) {
         try {

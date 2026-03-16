@@ -10,16 +10,23 @@ class PurchasePref private constructor(context: Context) {
         "_PurchasePref", MODE_PRIVATE
     )
 
-    var isAppPurchased: Boolean
-        get() = pref.getBoolean("isAppPurchased", false)
-        set(value) = pref.edit { putBoolean("isAppPurchased", value) }
 
+    var isLifeTimePurchased: Boolean
+        get() = pref.getBoolean("isLifeTimePurchased", false)
+        set(value) = pref.edit { putBoolean("isLifeTimePurchased", value) }
+
+    var isAppSubscribed: Boolean
+        get() = pref.getBoolean("isAppSubscribed", false)
+        set(value) = pref.edit { putBoolean("isAppSubscribed", value) }
+
+    val isAppPurchased: Boolean
+        get() = isLifeTimePurchased || isAppSubscribed
 
     companion object {
         @Volatile
         private var instance: PurchasePref? = null
 
-       internal fun getInstance(context: Context): PurchasePref {
+        internal fun getInstance(context: Context): PurchasePref {
             return instance ?: synchronized(this) {
                 instance ?: PurchasePref(context.applicationContext).also {
                     instance = it

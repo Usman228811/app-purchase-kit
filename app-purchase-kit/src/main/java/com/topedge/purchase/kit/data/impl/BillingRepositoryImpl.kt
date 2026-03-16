@@ -3,7 +3,6 @@ package com.topedge.purchase.kit.data.impl
 import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
-import android.util.Log
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -15,20 +14,17 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.topedge.purchase.kit.R
-import com.topedge.purchase.kit.core.utils.init.PurchaseKit.preference
-import com.topedge.purchase.kit.core.utils.init.PurchaseKit.internetHelper
+import com.topedge.purchase.kit.core.utils.init.PurchaseKit
 import com.topedge.purchase.kit.core.utils.showToast
 import com.topedge.purchase.kit.domain.repo.BillingRepository
 import com.topedge.purchase.kit.domain.repo.PurchasePriceModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -36,7 +32,7 @@ class BillingRepositoryImpl private constructor(
     mContext: Context,
 ) : BillingRepository {
 
-    private val context = mContext.applicationContext
+    private val context = mContext
 
     companion object {
         @Volatile
@@ -115,7 +111,7 @@ class BillingRepositoryImpl private constructor(
 
     private fun queryProductSkuForPurchase() {
 
-        if (!internetHelper.isConnected || !isBillingClientReady()) return
+        if (!PurchaseKit.internetHelper.isConnected || !isBillingClientReady()) return
 
         val queryParams = QueryProductDetailsParams.newBuilder()
             .setProductList(
@@ -138,7 +134,6 @@ class BillingRepositoryImpl private constructor(
                             price = purchaseSku?.oneTimePurchaseOfferDetails?.formattedPrice ?: ""
                         )
                     }
-
                 }
             } else {
 //                "Product Query Failed: ${result.responseCode}".logIt(BILLING_TAG)
@@ -149,7 +144,7 @@ class BillingRepositoryImpl private constructor(
     override fun purchaseProduct(activity: Activity?) {
         try {
             if (activity == null) return
-            if (!internetHelper.isConnected) {
+            if (!PurchaseKit.internetHelper.isConnected) {
                 context.showToast(activity.getString(R.string.no_internet))
                 return
             }
@@ -192,7 +187,7 @@ class BillingRepositoryImpl private constructor(
     }
 
     private fun checkProductPurchaseHistory() {
-        if (!internetHelper.isConnected || !isBillingClientReady()) return
+        if (!PurchaseKit.internetHelper.isConnected || !isBillingClientReady()) return
 
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP)
@@ -210,7 +205,7 @@ class BillingRepositoryImpl private constructor(
     }
 
     private fun updatePurchaseStatus(isPurchased: Boolean) {
-        preference.isAppPurchased = isPurchased
+        PurchaseKit.preference.isLifeTimePurchased = isPurchased
         if (isPurchased) {
 //            context.userAnalytics("Premium_buy_successful")
             coroutineScope.launch { _appPurchased.value = true }

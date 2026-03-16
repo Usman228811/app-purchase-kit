@@ -22,3 +22,7 @@ class InitBillingUseCase private constructor(
 
     }
 }
+
+//class InitBillingUseCase(private val billingRepository: BillingRepository) {
+//    operator fun invoke(productId: String) = billingRepository.initBilling(productId)
+//}

@@ -55,11 +55,11 @@ fun MainScreen() {
 
     val factory = remember { MainViewModelFactory() }
     val viewModel: MainViewModel = viewModel(factory = factory)
-    val mainState by  viewModel.mainState.collectAsState()
+    val mainState by  viewModel.state.collectAsState()
     val activity = LocalActivity.current as Activity
 
     LaunchedEffect(Unit) {
-        viewModel.loadSubscriptionProducts(activity, listOf("monthly", "yearly"))
+        viewModel.loadProducts(activity, listOf("monthly", "yearly"))
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 50.dp, start = 20.dp, end = 20.dp)) {
@@ -74,18 +74,18 @@ fun MainScreen() {
 
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = "Is Purchased: ${mainState.isPurchased}"
+            text = "Is Purchased: ${mainState.lifetimePurchased}"
         )
 
         Text(
             modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-            text = "Price: ${mainState.price}",
+            text = "Price: ${mainState.oneTimePrice}",
             fontSize = 26.sp
         )
 
         Button(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), onClick = {
 
-            viewModel.purchaseLifeTime(activity)
+            viewModel.purchaseProduct(activity)
         }) {
 
             Text(
@@ -101,6 +101,11 @@ fun MainScreen() {
             modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
             text = "Subscription Purchase",
             fontSize = 20.sp
+        )
+
+        Text(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 30.dp, top = 10.dp),
+            text = "Is Subscribed: ${mainState.subscribedId.isNotEmpty()}"
         )
 
 
@@ -126,7 +131,7 @@ fun MainScreen() {
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
-            viewModel.purchaseSubscription(activity)
+            viewModel.purchase(activity)
         }) {
 
             Text(
