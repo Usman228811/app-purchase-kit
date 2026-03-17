@@ -8,27 +8,37 @@ import com.topedge.purchase.kit.core.utils.purchase.AdKitSubscriptionHelper
 
 object PurchaseKit {
 
-    lateinit var preference: PurchasePref
-        private set
+    private lateinit var mContext: Application
+
+    val preference: PurchasePref by lazy {
+        PurchasePref.getInstance(mContext)
+    }
 
 
-    lateinit var internetHelper: InternetHelper
-        private set
+    val  internetHelper: InternetHelper by lazy {
+        InternetHelper.getInstance(mContext)
+    }
 
-    lateinit var oneTimePurchaseHelper: AdKitPurchaseHelper
-        private set
-    lateinit var subscriptionHelper: AdKitSubscriptionHelper
-        private set
+
+    val oneTimePurchaseHelper: AdKitPurchaseHelper by lazy {
+        AdKitPurchaseHelper.getInstance(mContext)
+    }
+
+    val subscriptionHelper: AdKitSubscriptionHelper by lazy {
+        AdKitSubscriptionHelper.getInstance(mContext)
+    }
+
 
 
     fun init(
         context: Application,
     ) {
+        mContext = context
 
-        preference = PurchasePref.getInstance(context)
-        internetHelper = InternetHelper.getInstance(context)
-        oneTimePurchaseHelper = AdKitPurchaseHelper.getInstance(context)
-        subscriptionHelper = AdKitSubscriptionHelper.getInstance(context)
+//        preference = PurchasePref.getInstance(context)
+//        internetHelper = InternetHelper.getInstance(context)
+//        oneTimePurchaseHelper = AdKitPurchaseHelper.getInstance(context)
+//        subscriptionHelper = AdKitSubscriptionHelper.getInstance(context)
 
     }
 }

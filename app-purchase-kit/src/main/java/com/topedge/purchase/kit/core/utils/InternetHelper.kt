@@ -1,5 +1,6 @@
 package com.topedge.purchase.kit.core.utils
 
+import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -13,7 +14,7 @@ class InternetHelper private constructor(context: Context) {
 
 
         internal fun getInstance(
-            context: Context,
+            context: Application,
         ): InternetHelper {
             return instance ?: synchronized(this) {
                 instance ?: InternetHelper(
