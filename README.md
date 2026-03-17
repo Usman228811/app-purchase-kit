@@ -12,7 +12,7 @@ To integrate the Monetization Kit into your project, include the following in yo
 
 ```kotlin
 dependencies {
-    implementation("com.github.Usman228811:app-purchase-kit:v1.0.5")
+    implementation("com.github.Usman228811:app-purchase-kit:1.0.5")
 }
 ```
 
@@ -56,8 +56,8 @@ viewModelScope.apply {
         }
     }
     launch {
-        PurchaseKit.oneTimePurchaseHelper.productPriceFlow.collectLatest {
-            Log.d("ioiioo", "productPriceFlow: ${it.price.ifEmpty { "..." }}")
+        PurchaseKit.oneTimePurchaseHelper.productPriceFlow.collectLatest { model ->
+            Log.d("ioiioo", "productPriceFlow: ${model.price.ifEmpty { "..." }}")
         }
     }
 }
@@ -65,8 +65,12 @@ viewModelScope.apply {
 // Trigger purchase
 PurchaseKit.oneTimePurchaseHelper.purchaseProduct(activity)
 
-// You can check if the app is purchased using PurchaseKit.
+// You can check if any purchased is done using PurchaseKit.
 val isPurchased = PurchaseKit.preference.isAppPurchased
+
+
+// You can check if the oneTime/LifeTime purhchased is done using PurchaseKit.
+val isLifeTimePurchased = PurchaseKit.preference.isLifeTimePurchased
 ```
 
 ---
@@ -75,7 +79,12 @@ val isPurchased = PurchaseKit.preference.isAppPurchased
 
 ```kotlin
 // You can check if the app is subscribed using PurchaseKit.
+val isAppSubscribed = PurchaseKit.preference.isAppSubscribed
+
+
+// You can check if any purchased is done using PurchaseKit.
 val isPurchased = PurchaseKit.preference.isAppPurchased
+
 
 ```
 
