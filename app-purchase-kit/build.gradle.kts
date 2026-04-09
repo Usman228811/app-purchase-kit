@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.library")
+    id("org.jetbrains.kotlin.android")
     id("maven-publish")
 }
 
@@ -34,7 +34,7 @@ android {
 }
 
 group = "com.github.Usman228811"
-version = "1.0.6"
+version = "1.0.7"
 
 
 afterEvaluate {
@@ -44,7 +44,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.Usman228811"
                 artifactId = "app-purchase-kit"
-                version = "1.0.6"
+                version = "1.0.7"
             }
         }
     }

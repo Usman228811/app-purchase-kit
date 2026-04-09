@@ -19,6 +19,7 @@ import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.topedge.purchase.kit.R
+import com.topedge.purchase.kit.core.utils.init.PurchaseKit
 import com.topedge.purchase.kit.core.utils.showToast
 import com.topedge.purchase.kit.domain.repo.SubscriptionListener
 import com.topedge.purchase.kit.domain.repo.SubscriptionRepository
@@ -64,7 +65,12 @@ class SubscriptionRepositoryImpl private constructor(
 
     override fun purchaseProduct(activity: Activity, skuDetails: ProductDetails) {
         try {
+            if (PurchaseKit.internetHelper.isConnected.not()) {
+                context.showToast(activity.getString(R.string.no_internet))
+                return
+            }
             if (isBillingClientDead) {
+                context.showToast(activity.getString(R.string.no_internet))
                 return
             }
             val billingResult = skuDetails.subscriptionOfferDetails?.get(0)?.let {
