@@ -8,7 +8,7 @@ interface SubscriptionRepository {
     fun setBillingListener(activity: Activity, listener: SubscriptionListener?)
     fun querySubscriptionProducts(activity: Activity,productIds: List<String>)
     fun querySubscriptionHistory(activity: Activity)
-    fun purchaseProduct(activity: Activity,skuDetails: ProductDetails)
+    fun purchaseProduct(activity: Activity,skuDetails: ProductDetails,onUserDismissedPaywall :(()->Unit) ?= null)
     fun changeSubscriptionPlan(activity: Activity,skuDetails: ProductDetails)
     fun getSelectedSubscriptionId(selectedPosition: Int): String
     fun isSubscriptionSupported(): Boolean

@@ -143,10 +143,14 @@ class MainViewModel() : ViewModel() {
     }
 
     fun purchase(activity: Activity) {
-        PurchaseKit.subscriptionHelper.purchase(activity, selectedId())
+        PurchaseKit.subscriptionHelper.purchase(activity, selectedId(), onUserDismissedPaywall = {
+            Log.d("purchase_status", "subscription: paywall cancelled")
+        })
     }
 
     fun purchaseProduct(activity: Activity) {
-        PurchaseKit.oneTimePurchaseHelper.purchaseProduct(activity)
+        PurchaseKit.oneTimePurchaseHelper.purchaseProduct(activity, onUserDismissedPaywall = {
+            Log.d("purchase_status", "one-time-purchase: paywall cancelled")
+        })
     }
 }

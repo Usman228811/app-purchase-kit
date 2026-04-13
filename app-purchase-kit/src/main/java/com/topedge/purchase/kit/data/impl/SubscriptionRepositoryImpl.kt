@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.text.TextUtils
+import android.util.Log
 import androidx.core.net.toUri
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
@@ -30,9 +31,15 @@ class SubscriptionRepositoryImpl private constructor(
 ) : SubscriptionRepository, PurchasesUpdatedListener {
 
 
-    private var mActivity: Activity ?= null
+
+    private var onUserDismissedPaywall :(()->Unit) ?= null
+
+
+    private var mActivity: Activity? = null
 
     companion object {
+        const val TAG = "SubscriptionRepositoryImpl"
+
         @Volatile
         private var instance: SubscriptionRepositoryImpl? = null
 
@@ -63,8 +70,13 @@ class SubscriptionRepositoryImpl private constructor(
             false
         } else subscriptionClient.isReady
 
-    override fun purchaseProduct(activity: Activity, skuDetails: ProductDetails) {
+    override fun purchaseProduct(
+        activity: Activity,
+        skuDetails: ProductDetails,
+        onUserDismissedPaywall: (() -> Unit)?
+    ) {
         try {
+            this.onUserDismissedPaywall = onUserDismissedPaywall
             if (PurchaseKit.internetHelper.isConnected.not()) {
                 context.showToast(activity.getString(R.string.no_internet))
                 return
@@ -269,19 +281,28 @@ class SubscriptionRepositoryImpl private constructor(
     }
 
     override fun onPurchasesUpdated(billingResult: BillingResult, list: List<Purchase>?) {
-        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-            if (!list.isNullOrEmpty()) {
-                for (purchase in list) {
-                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
-                        checkSubscriptionsId(getSku(purchase.products))
-                    ) {
-                        mActivity?.runOnUiThread {
-                            subscriptionListener?.checkPurchaseStatus(purchase)
+        when (billingResult.responseCode) {
+            BillingClient.BillingResponseCode.OK -> {
+                if (!list.isNullOrEmpty()) {
+                    for (purchase in list) {
+                        if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+                            checkSubscriptionsId(getSku(purchase.products))
+                        ) {
+                            mActivity?.runOnUiThread {
+                                subscriptionListener?.checkPurchaseStatus(purchase)
+                            }
+                            break
                         }
-                        break
                     }
                 }
+
             }
+
+            BillingClient.BillingResponseCode.USER_CANCELED -> {
+                Log.d(TAG, "Subscription: User dismissed the paywall")
+                onUserDismissedPaywall?.invoke()
+            }
+
         }
     }
 

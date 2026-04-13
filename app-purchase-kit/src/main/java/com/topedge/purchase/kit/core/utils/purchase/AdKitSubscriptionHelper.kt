@@ -56,7 +56,8 @@ class AdKitSubscriptionHelper private constructor(
 
     fun purchase(
         activity: Activity,
-        productId: String?
+        productId: String?,
+        onUserDismissedPaywall :(()->Unit) ?= null
     ) {
 
         when {
@@ -75,7 +76,7 @@ class AdKitSubscriptionHelper private constructor(
 
                 subscriptionProducts.value.products?.let { products ->
                     products[productId]?.let {
-                        purchaseProduct(activity, it)
+                        purchaseProduct(activity, it, onUserDismissedPaywall)
                     }
                 }
 

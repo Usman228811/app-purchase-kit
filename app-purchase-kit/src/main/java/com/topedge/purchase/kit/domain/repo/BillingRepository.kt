@@ -11,5 +11,5 @@ interface BillingRepository {
     fun productPriceFlow(): StateFlow<PurchasePriceModel>
     fun appPurchased(): Flow<Boolean>
     fun initBilling(productId: String)
-    fun purchaseProduct(activity: Activity?)
+    fun purchaseProduct(activity: Activity?,onUserDismissedPaywall :(()->Unit) ?= null)
 }
