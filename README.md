@@ -12,7 +12,7 @@ To integrate the Monetization Kit into your project, include the following in yo
 
 ```kotlin
 dependencies {
-    implementation("com.github.Usman228811:app-purchase-kit:1.0.7")
+    implementation("com.github.Usman228811:app-purchase-kit:1.0.8")
 }
 ```
 
@@ -63,7 +63,9 @@ viewModelScope.apply {
 }
 
 // Trigger purchase
-PurchaseKit.oneTimePurchaseHelper.purchaseProduct(activity)
+PurchaseKit.oneTimePurchaseHelper.purchaseProduct(activity, onUserDismissedPaywall = {
+            Log.d("purchase_status", "one-time-purchase: paywall cancelled")
+        })
 
 // You can check if any purchased is done using PurchaseKit.
 val isPurchased = PurchaseKit.preference.isAppPurchased
@@ -170,7 +172,9 @@ class SubscriptionViewModel : ViewModel() {
     }
 
     fun purchase(activity: Activity) {
-        PurchaseKit.subscriptionHelper.purchase(activity, selectedId())
+        PurchaseKit.subscriptionHelper.purchase(activity, selectedId(),onUserDismissedPaywall = {
+            Log.d("purchase_status", "subscription: paywall cancelled")
+        })
     }
 }
 ```
