@@ -5,8 +5,8 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 
 interface SubscriptionRepository {
-    fun setBillingListener(activity: Activity, listener: SubscriptionListener?)
-    fun querySubscriptionProducts(activity: Activity,productIds: List<String>)
+    fun setBillingListener(activity: Activity,removeAdsIds: List<String>,
+                           featureIds: List<String>, listener: SubscriptionListener?)
     fun querySubscriptionHistory(activity: Activity)
     fun purchaseProduct(activity: Activity,skuDetails: ProductDetails,onUserDismissedPaywall :(()->Unit) ?= null)
     fun changeSubscriptionPlan(activity: Activity,skuDetails: ProductDetails)
@@ -20,10 +20,7 @@ interface SubscriptionRepository {
 }
 
 interface SubscriptionListener {
-    fun onBillingInitialized()
-    fun onQueryProductSuccess(skuList: Map<String, ProductDetails>)
+    fun onQueryProductSuccess(skuList: Map<String, ProductDetails>, productList: List<ProductDetails>)
     fun subscriptionItemNotFound()
-    fun checkPurchaseStatus(purchase: Purchase)
-    fun updatePref( subscribedId:String)
-    fun onSubscriptionPurchasedFetched()
+    fun onSubscriptionPurchasedFetched(purchasesList:List<String>)
 }

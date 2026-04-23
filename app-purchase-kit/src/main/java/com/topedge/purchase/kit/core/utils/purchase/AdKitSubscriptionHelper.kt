@@ -3,7 +3,7 @@ package com.topedge.purchase.kit.core.utils.purchase
 import android.app.Activity
 import android.app.Application
 import com.topedge.purchase.kit.core.utils.init.PurchaseKit.internetHelper
-import com.topedge.purchase.kit.domain.usecase.PriceModel
+import com.topedge.purchase.kit.domain.model.OfferTexts
 import com.topedge.purchase.kit.domain.usecase.PurchaseSubscriptionUseCase
 import com.topedge.purchase.kit.domain.usecase.QuerySubscriptionProductsUseCase
 
@@ -31,50 +31,51 @@ class AdKitSubscriptionHelper private constructor(
     }
 
 
-    val subscriptionProducts = queryProducts.products
-    val historyFetched = queryProducts.historyFetched
-    val subscribedId = queryProducts.subscribedId
-    val isAppSubscribed = queryProducts.isAppSubscribed
+    val subscriptionState = queryProducts.ucState
 
-    fun initBilling(activity: Activity, productIds: List<String>) {
-        queryProducts(activity, productIds)
-    }
-
-    fun querySubscriptionProducts(activity: Activity) {
-        queryProducts.querySubscriptionProducts(activity)
+    fun initBilling(
+        activity: Activity,
+        removeAdsIds: List<String>,
+        featureIds: List<String>
+    ) {
+        queryProducts(activity = activity, removeAdsIds = removeAdsIds, featureIds = featureIds)
     }
 
     fun isSubscriptionUpdateSupported() = queryProducts.isSubscriptionUpdateSupported()
 
     fun getBillingPrice(
         productId: String,
-        offerId: String = "",
-        billingPeriod: String
-    ): PriceModel {
-        return queryProducts.getBillingPrice(productId, offerId, billingPeriod)
+    ): OfferTexts {
+        return queryProducts.buildOfferTexts(productId)
     }
+
+    private fun isAlreadySubscribed(productId: String): Boolean {
+        return subscriptionState.value.purchasesList.contains(productId)
+    }
+
 
     fun purchase(
         activity: Activity,
         productId: String?,
-        onUserDismissedPaywall :(()->Unit) ?= null
-    ) {
+        isForUpdatePlan: Boolean, onUserDismissedPaywall: (() -> Unit)? = null,
+
+        ) {
 
         when {
             internetHelper.isConnected.not() || productId == null -> {
 
             }
 
-            subscribedId.value == productId -> {
+            isAlreadySubscribed(productId) -> {
                 purchaseProduct.viewUrl(
                     activity,
                     "https://play.google.com/store/account/subscriptions?sku=${productId}&package=${activity.packageName}"
                 )
             }
 
-            subscribedId.value == "" -> {
+            subscriptionState.value.purchasesList.isEmpty() -> {
 
-                subscriptionProducts.value.products?.let { products ->
+                queryProducts.getProducts()?.let { products ->
                     products[productId]?.let {
                         purchaseProduct(activity, it, onUserDismissedPaywall)
                     }
@@ -82,9 +83,17 @@ class AdKitSubscriptionHelper private constructor(
 
             }
 
+            !isForUpdatePlan -> {
+                queryProducts.getProducts()?.let { products ->
+                    products[productId]?.let {
+                        purchaseProduct(activity, it, onUserDismissedPaywall)
+                    }
+                }
+            }
+
             isSubscriptionUpdateSupported() -> {
 
-                subscriptionProducts.value.products?.let { products ->
+                queryProducts.getProducts()?.let { products ->
                     products[productId]?.let {
                         purchaseProduct.changeSubscriptionPlan(activity, it)
                     }

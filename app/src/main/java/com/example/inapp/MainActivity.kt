@@ -22,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,7 +58,7 @@ fun MainScreen() {
     val activity = LocalActivity.current as Activity
 
     LaunchedEffect(Unit) {
-        viewModel.loadProducts(activity, listOf("monthly", "yearly"))
+        viewModel.loadProducts(activity)
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 50.dp, start = 20.dp, end = 20.dp)) {
@@ -105,7 +104,7 @@ fun MainScreen() {
 
         Text(
             modifier = Modifier.fillMaxWidth().padding(bottom = 30.dp, top = 10.dp),
-            text = "Is Subscribed: ${mainState.subscribedId.isNotEmpty()}"
+            text = "Is Subscribed: ${mainState.subscriptionPurchasesList.isNotEmpty()}"
         )
 
 
@@ -114,7 +113,7 @@ fun MainScreen() {
             price = mainState.monthlyPrice,
             isSelected = mainState.selectedButtonPos == 0,
             onClick = {
-                viewModel.updateSelectedButtonPos(activity, 0)
+                viewModel.updateSelectedButtonPos(0)
 
             }
         )
@@ -124,7 +123,7 @@ fun MainScreen() {
             price = mainState.yearlyPrice,
             isSelected = mainState.selectedButtonPos == 1,
             onClick = {
-                viewModel.updateSelectedButtonPos(activity, 1)
+                viewModel.updateSelectedButtonPos(1)
 
             }
         )

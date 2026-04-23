@@ -13,12 +13,27 @@ class AdKitPurchaseHelper private constructor(
     private val billingRepository: BillingRepository
 ) {
 
-    val productPriceFlow = billingRepository.productPriceFlow()
-    val appPurchased = billingRepository.appPurchased()
+    fun initBilling(
+        removeAdsIds: List<String>,
+        featureIds: List<String>
+    ) = init(removeAdsIds = removeAdsIds, featureIds = featureIds)
 
-    fun initBilling(productId: String) = init(productId)
 
-    fun purchaseProduct(activity: Activity?,onUserDismissedPaywall :(()->Unit) ?= null) = purchase(activity, onUserDismissedPaywall)
+    val oneTimePurchaseState = init.ucState
+
+
+    fun purchaseProduct(
+        activity: Activity?,
+        productId: String,
+        onUserDismissedPaywall: (() -> Unit)? = null
+    ) =
+        purchase(activity, productId, onUserDismissedPaywall)
+
+    fun getBillingPrice(
+        productId: String,
+    ): String {
+        return init.getBillingPrice(productId)
+    }
 
     companion object {
         @Volatile

@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.topedge.purchase.kit.core.utils.init.PurchaseKit
-import com.topedge.purchase.kit.domain.usecase.PriceModel
+import com.topedge.purchase.kit.domain.model.OfferType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -21,18 +21,17 @@ class MainViewModelFactory : ViewModelProvider.Factory {
 }
 
 data class MainState(
-//    val weeklyPrice: String = "",
     val monthlyPrice: String = "",
     val yearlyPrice: String = "",
-    val subscribedId: String = "",
     val selectedButtonPos: Int = 0,
     val buttonText: String = "subscribe",
     val oneTimePrice: String = "",
     val lifetimePurchased: Boolean = false,
+    val subscriptionPurchasesList: List<String> = emptyList()
 
-    )
+)
 
-class MainViewModel() : ViewModel() {
+class MainViewModel : ViewModel() {
 
     private var _state = MutableStateFlow(MainState())
     val state = _state.asStateFlow()
@@ -42,115 +41,140 @@ class MainViewModel() : ViewModel() {
         1 to "yearly"
     )
 
+    companion object {
+        const val TAG = "MainViewModel"
+    }
+
     private fun selectedId() = subscriptionMap[state.value.selectedButtonPos]
 
     init {
-        PurchaseKit.oneTimePurchaseHelper.initBilling("android.test.purchased")
+        PurchaseKit.oneTimePurchaseHelper.initBilling(
+            removeAdsIds = listOf("android.test.purchased"),
+            featureIds = listOf()
+        )
         viewModelScope.apply {
             launch {
-                PurchaseKit.oneTimePurchaseHelper.productPriceFlow.collectLatest { model ->
+                PurchaseKit.oneTimePurchaseHelper.oneTimePurchaseState.collectLatest { oneTimePurchaseState ->
+                    Log.d(TAG, "oneTimePurchasesList: ${oneTimePurchaseState.purchasesList} ")
+                    Log.d(TAG, "oneTimeOfferList: ${oneTimePurchaseState.offers} ")
                     _state.update {
                         it.copy(
-                            oneTimePrice = model.price
+                            lifetimePurchased = oneTimePurchaseState.purchasesList.contains("android.test.purchased"),
+                            oneTimePrice = PurchaseKit.oneTimePurchaseHelper.getBillingPrice("android.test.purchased")
                         )
                     }
                 }
             }
 
             launch {
-                PurchaseKit.subscriptionHelper.subscriptionProducts.collectLatest {
+                PurchaseKit.subscriptionHelper.subscriptionState.collectLatest { subscriptionState ->
+                    Log.d(TAG, "subscriptionPurchasesList: ${subscriptionState.purchasesList} ")
+                    Log.d(TAG, "subscriptionOffersList: ${subscriptionState.offers} ")
+                    Log.d(TAG, "isMonthlyPurchased: ${subscriptionState.purchasesList.contains("monthly")} ")
+                    Log.d(TAG, "isYearlyPurchased: ${subscriptionState.purchasesList.contains("yearly")} ")
+
+
+                    val monthly = PurchaseKit.subscriptionHelper.getBillingPrice("monthly")
+                    val yearly = PurchaseKit.subscriptionHelper.getBillingPrice("yearly")
+
+
+                    when (monthly.type) {
+                        OfferType.FREE_TRIAL -> {
+                            Log.d(TAG, ": FREE_TRIAL")
+                        }
+
+                        OfferType.PAID_TRIAL -> {
+                            Log.d(TAG, ": PAID_TRIAL")
+                        }
+
+                        OfferType.STRAIGHT -> {
+                            Log.d(TAG, ": STRAIGHT")
+                        }
+                    }
+
+                    Log.d(
+                        TAG,
+                        "mainOfferText=${monthly.mainOfferText} - period=${monthly.period} - freeTrialText=${monthly.freeTrialText} - paidTrialText=${monthly.paidTrialText}"
+                    )
+                    Log.d(
+                        TAG,
+                        "mainOfferText=${yearly.mainOfferText} - period=${yearly.period}- freeTrialText=${yearly.freeTrialText} - paidTrialText=${yearly.paidTrialText}"
+                    )
                     _state.update {
-//                        val price = getBillingPrice(
-//                            "weekly_without_free_trail",
-//                            "paid-trail",
-//                            "P1W"
-//                        )
 
                         it.copy(
-//                            weeklyPrice = "${price.price} ${price.offerPrice}",
-                            monthlyPrice = getBillingPrice(subscriptionMap[0]?: "", "", "P1M").price,
-                            yearlyPrice = getBillingPrice(subscriptionMap[1]?: "", "", "P1Y").price,
+                            subscriptionPurchasesList = subscriptionState.purchasesList,
+                            monthlyPrice = "${monthly.mainOfferText}",
+                            yearlyPrice = "${yearly.mainOfferText}",
                         )
                     }
-                }
-            }
 
-            launch {
-                PurchaseKit.subscriptionHelper.isAppSubscribed.collectLatest { isSubscribed ->
-                    Log.d("purchase_status", "isAppSubscribed: $isSubscribed")
-                }
-            }
-            launch {
-                PurchaseKit.oneTimePurchaseHelper.appPurchased.collectLatest { oneTimePurchased ->
-                    _state.update {
-                        it.copy(
-                            lifetimePurchased = oneTimePurchased
-                        )
-                    }
-                    Log.d("purchase_status", "oneTimePurchased: $oneTimePurchased")
-                }
-            }
-            launch {
-                PurchaseKit.subscriptionHelper.subscribedId.collectLatest { subscribedId ->
-                    _state.update {
-                        it.copy(
-                            subscribedId = subscribedId
-                        )
-                    }
-                }
-            }
 
-            launch {
-                PurchaseKit.subscriptionHelper.historyFetched.collectLatest {
-
-                    val buttonText = when {
-                        state.value.subscribedId.isEmpty() -> "subscribe"
-                        state.value.subscribedId == selectedId() -> "cancel subscription"
-                        PurchaseKit.subscriptionHelper.isSubscriptionUpdateSupported() -> "update subscription"
-                        else -> state.value.buttonText // fallback to existing text
-                    }
-
-                    _state.update {
-                        it.copy(buttonText = buttonText)
-                    }
+                    changeButtonText()
                 }
+
             }
         }
     }
 
-    fun loadProducts(activity: Activity, list: List<String>) {
-        PurchaseKit.subscriptionHelper.initBilling(activity, list)
+
+    fun changeButtonText() {
+
+        val selectedId = subscriptionMap[state.value.selectedButtonPos]
+        val purchases = state.value.subscriptionPurchasesList
+
+        val buttonText = when {
+            purchases.isEmpty() -> "Subscribe"
+
+            selectedId != null && purchases.contains(selectedId) ->
+                "Cancel Subscription"
+
+            purchases.isNotEmpty() &&
+                    PurchaseKit.subscriptionHelper.isSubscriptionUpdateSupported() ->
+                "Update Subscription"
+
+            else -> state.value.buttonText
+        }
+
+        _state.update {
+            it.copy(buttonText = buttonText)
+        }
+    }
+
+    fun loadProducts(activity: Activity,) {
+        PurchaseKit.subscriptionHelper.initBilling(activity,
+            removeAdsIds = listOf("monthly", "yearly"),
+            featureIds = listOf())
     }
 
 
-    private fun getBillingPrice(
-        productId: String,
-        offerId: String,
-        billingPeriod: String
-    ): PriceModel {
-        return PurchaseKit.subscriptionHelper.getBillingPrice(productId, offerId, billingPeriod)
-
-
-    }
-
-    fun updateSelectedButtonPos(activity: Activity, selectedButtonPos: Int) {
+    fun updateSelectedButtonPos(selectedButtonPos: Int) {
         _state.update {
             it.copy(
                 selectedButtonPos = selectedButtonPos
             )
         }
-        PurchaseKit.subscriptionHelper.querySubscriptionProducts(activity)
+
+        changeButtonText()
+
     }
 
     fun purchase(activity: Activity) {
-        PurchaseKit.subscriptionHelper.purchase(activity, selectedId(), onUserDismissedPaywall = {
-            Log.d("purchase_status", "subscription: paywall cancelled")
-        })
+        PurchaseKit.subscriptionHelper.purchase(
+            activity,
+            selectedId(),
+            isForUpdatePlan = false,
+            onUserDismissedPaywall = {
+                Log.d(TAG, "subscription: paywall cancelled")
+            })
     }
 
     fun purchaseProduct(activity: Activity) {
-        PurchaseKit.oneTimePurchaseHelper.purchaseProduct(activity, onUserDismissedPaywall = {
-            Log.d("purchase_status", "one-time-purchase: paywall cancelled")
-        })
+        PurchaseKit.oneTimePurchaseHelper.purchaseProduct(
+            activity,
+            productId = "android.test.purchased",
+            onUserDismissedPaywall = {
+                Log.d(TAG, "one-time-purchase: paywall cancelled")
+            })
     }
 }

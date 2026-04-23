@@ -2,11 +2,13 @@ package com.topedge.purchase.kit.domain.usecase
 
 import android.app.Activity
 import com.topedge.purchase.kit.domain.repo.BillingRepository
-
 class PurchaseProductUseCase private constructor(
     private val billingRepository: BillingRepository
 ) {
-    operator fun invoke(activity: Activity?,onUserDismissedPaywall :(()->Unit) ?= null) = billingRepository.purchaseProduct(activity,onUserDismissedPaywall)
+    operator fun invoke(
+        activity: Activity?,
+        productId: String, onUserDismissedPaywall: (() -> Unit)? = null
+    ) = billingRepository.purchaseProduct(activity, productId, onUserDismissedPaywall)
 
     companion object {
         @Volatile
@@ -20,8 +22,3 @@ class PurchaseProductUseCase private constructor(
         }
     }
 }
-
-
-//class PurchaseProductUseCase(private val billingRepository: BillingRepository) {
-//    operator fun invoke(activity: Activity?) = billingRepository.purchaseProduct(activity)
-//}
