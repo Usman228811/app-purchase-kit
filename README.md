@@ -12,7 +12,7 @@ To integrate the Monetization Kit into your project, include the following in yo
 
 ```kotlin
 dependencies {
-    implementation("com.github.Usman228811:app-purchase-kit:1.0.9")
+    implementation("com.github.Usman228811:app-purchase-kit:1.1.0")
 }
 ```
 
@@ -38,64 +38,22 @@ PurchaseKit.init(this)
 
 ---
 
-## One-Time Purchase
-
-Initialize billing in your splash screen:
+## Premium Billing
 
 ```kotlin
- PurchaseKit.oneTimePurchaseHelper.initBilling(
-            removeAdsIds = listOf("android.test.purchased"),
-            featureIds = listOf()
-        )
-```
-
-Handle purchase state in your ViewModel:
-
-```kotlin
-viewModelScope.apply {
-    launch {
-                PurchaseKit.oneTimePurchaseHelper.oneTimePurchaseState.collectLatest { oneTimePurchaseState ->
-                    Log.d(TAG, "oneTimePurchasesList: ${oneTimePurchaseState.purchasesList} ")
-                    Log.d(TAG, "oneTimeOfferList: ${oneTimePurchaseState.offers} ")
-                    _state.update {
-                        it.copy(
-                            lifetimePurchased = oneTimePurchaseState.purchasesList.contains("android.test.purchased"),
-                            oneTimePrice = PurchaseKit.oneTimePurchaseHelper.getBillingPrice("android.test.purchased")
-                        )
-                    }
-                }
-            }
-}
-
-// Trigger purchase
-PurchaseKit.oneTimePurchaseHelper.purchaseProduct(activity, "android.test.purchased", onUserDismissedPaywall = {
-            Log.d("purchase_status", "one-time-purchase: paywall cancelled")
-        })
-
-// You can check if any purchased is done using PurchaseKit.
+// You can check if any purchased for remove ads is done using PurchaseKit.
 val isPurchased = PurchaseKit.preference.isAppPurchased
 
 
 // You can check if the oneTime/LifeTime purhchased is done using PurchaseKit.
 val isLifeTimePurchased = PurchaseKit.preference.isLifeTimePurchased
-```
 
----
 
-## Subscriptions
-
-```kotlin
-// You can check if the app is subscribed using PurchaseKit.
+// You can check if any subscription for remove ads is done using PurchaseKit.
 val isAppSubscribed = PurchaseKit.preference.isAppSubscribed
-
-
-// You can check if any purchased is done using PurchaseKit.
-val isPurchased = PurchaseKit.preference.isAppPurchased
-
-
 ```
 
-### ViewModel for Subscriptions
+### ViewModel for Billing
 
 ```kotlin
 data class MainState(
@@ -103,9 +61,12 @@ data class MainState(
     val yearlyPrice: String = "",
     val selectedButtonPos: Int = 0,
     val buttonText: String = "subscribe",
+    val oneTimePrice: String = "",
+    val lifetimePurchased: Boolean = false,
     val subscriptionPurchasesList: List<String> = emptyList()
 
 )
+
 
 class MainViewModel : ViewModel() {
 
@@ -125,16 +86,25 @@ class MainViewModel : ViewModel() {
 
     init {
         viewModelScope.apply {
-           launch {
-                PurchaseKit.subscriptionHelper.subscriptionState.collectLatest { subscriptionState ->
-                    Log.d(TAG, "subscriptionPurchasesList: ${subscriptionState.purchasesList} ")
-                    Log.d(TAG, "subscriptionOffersList: ${subscriptionState.offers} ")
-                    Log.d(TAG, "isMonthlyPurchased: ${subscriptionState.purchasesList.contains("monthly")} ")
-                    Log.d(TAG, "isYearlyPurchased: ${subscriptionState.purchasesList.contains("yearly")} ")
+            launch {
+                PurchaseKit.premiumHelper.premiumState.collectLatest { premiumState ->
+                    Log.d(TAG, "AllPurchasesList: ${premiumState.allPurchases} ")
+                    Log.d(TAG, "subscriptionPurchasesList: ${premiumState.subscriptionPurchases} ")
+                    Log.d(TAG, "LifeTimePurchasesList: ${premiumState.oneTimePurchases} ")
+                    Log.d(TAG, "LifeTimeOffersList: ${premiumState.oneTimeOffers} ")
+                    Log.d(TAG, "subscriptionOffersList: ${premiumState.subscriptionOffers} ")
+                    Log.d(
+                        TAG,
+                        "isMonthlyPurchased: ${premiumState.allPurchases.contains("monthly")} "
+                    )
+                    Log.d(
+                        TAG,
+                        "isYearlyPurchased: ${premiumState.allPurchases.contains("yearly")} "
+                    )
 
 
-                    val monthly = PurchaseKit.subscriptionHelper.getBillingPrice("monthly")
-                    val yearly = PurchaseKit.subscriptionHelper.getBillingPrice("yearly")
+                    val monthly = PurchaseKit.premiumHelper.getBillingPrice("monthly")
+                    val yearly = PurchaseKit.premiumHelper.getBillingPrice("yearly")
 
 
                     when (monthly.type) {
@@ -162,7 +132,9 @@ class MainViewModel : ViewModel() {
                     _state.update {
 
                         it.copy(
-                            subscriptionPurchasesList = subscriptionState.purchasesList,
+                            lifetimePurchased = premiumState.allPurchases.contains("android.test.purchased"),
+                            oneTimePrice = PurchaseKit.premiumHelper.getBillingPrice("android.test.purchased").mainOfferText?: "",
+                            subscriptionPurchasesList = premiumState.subscriptionPurchases,
                             monthlyPrice = "${monthly.mainOfferText}",
                             yearlyPrice = "${yearly.mainOfferText}",
                         )
@@ -189,7 +161,7 @@ class MainViewModel : ViewModel() {
                 "Cancel Subscription"
 
             purchases.isNotEmpty() &&
-                    PurchaseKit.subscriptionHelper.isSubscriptionUpdateSupported() ->
+                    PurchaseKit.premiumHelper.isSubscriptionUpdateSupported() ->
                 "Update Subscription"
 
             else -> state.value.buttonText
@@ -200,10 +172,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun loadProducts(activity: Activity,) {
-        PurchaseKit.subscriptionHelper.initBilling(activity,
-            removeAdsIds = listOf("monthly", "yearly"),
-            featureIds = listOf())
+    fun loadProducts(activity: Activity) {
+        PurchaseKit.premiumHelper.initBilling(
+            activity,
+            lifetimeProductIds = listOf("android.test.purchased"),
+            lifetimeFeatureIds = listOf(),
+            subscriptionProductIds = listOf("monthly", "yearly"),
+            subscriptionFeatureIds = listOf()
+        )
     }
 
 
@@ -219,17 +195,21 @@ class MainViewModel : ViewModel() {
     }
 
     fun purchase(activity: Activity) {
-
-        // importatnt parameter "isForUpdatePlan"
-		// Pass true → update existing subscription
-		// Pass false → start a new subscription
-
-        PurchaseKit.subscriptionHelper.purchase(
+        PurchaseKit.premiumHelper.purchase(
             activity,
             selectedId(),
             isForUpdatePlan = false,
             onUserDismissedPaywall = {
                 Log.d(TAG, "subscription: paywall cancelled")
+            })
+    }
+
+    fun purchaseProduct(activity: Activity) {
+        PurchaseKit.premiumHelper.purchase(
+            activity,
+            productId = "android.test.purchased",
+            onUserDismissedPaywall = {
+                Log.d(TAG, "one-time-purchase: paywall cancelled")
             })
     }
 }
