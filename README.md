@@ -41,16 +41,9 @@ PurchaseKit.init(this)
 ## Premium Billing
 
 ```kotlin
-// You can check if any purchased for remove ads is done using PurchaseKit.
-val isPurchased = PurchaseKit.preference.isAppPurchased
-
-
-// You can check if the oneTime/LifeTime purhchased is done using PurchaseKit.
-val isLifeTimePurchased = PurchaseKit.preference.isLifeTimePurchased
-
-
-// You can check if any subscription for remove ads is done using PurchaseKit.
-val isAppSubscribed = PurchaseKit.preference.isAppSubscribed
+val isLifetimePurchased = AdKit.adKitPref.isLifeTimePurchased // if your id is in lifetimeProductIds
+val isSubscribed = AdKit.adKitPref.isAppSubscribed // if your id is in subscriptionProductIds
+val isPremium = AdKit.adKitPref.isAppPurchased
 ```
 
 ### ViewModel for Billing
