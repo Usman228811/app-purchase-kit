@@ -3,8 +3,7 @@ package com.topedge.purchase.kit.core.utils.init
 import android.app.Application
 import com.topedge.purchase.kit.core.utils.InternetHelper
 import com.topedge.purchase.kit.core.utils.PurchasePref
-import com.topedge.purchase.kit.core.utils.purchase.AdKitPurchaseHelper
-import com.topedge.purchase.kit.core.utils.purchase.AdKitSubscriptionHelper
+import com.topedge.purchase.kit.core.utils.purchase.PurchaseKitPremiumHelper
 
 object PurchaseKit {
 
@@ -20,13 +19,10 @@ object PurchaseKit {
     }
 
 
-    val oneTimePurchaseHelper: AdKitPurchaseHelper by lazy {
-        AdKitPurchaseHelper.getInstance(mContext)
+    val premiumHelper: PurchaseKitPremiumHelper by lazy {
+        PurchaseKitPremiumHelper.getInstance(mContext)
     }
 
-    val subscriptionHelper: AdKitSubscriptionHelper by lazy {
-        AdKitSubscriptionHelper.getInstance(mContext)
-    }
 
 
 

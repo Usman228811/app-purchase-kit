@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.topedge.purchase.kit.core.utils.init.PurchaseKit
+import com.topedge.purchase.kit.core.utils.purchase.PurchaseKitPremiumHelper
 import com.topedge.purchase.kit.domain.model.OfferType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,34 +49,26 @@ class MainViewModel : ViewModel() {
     private fun selectedId() = subscriptionMap[state.value.selectedButtonPos]
 
     init {
-        PurchaseKit.oneTimePurchaseHelper.initBilling(
-            removeAdsIds = listOf("android.test.purchased"),
-            featureIds = listOf()
-        )
         viewModelScope.apply {
             launch {
-                PurchaseKit.oneTimePurchaseHelper.oneTimePurchaseState.collectLatest { oneTimePurchaseState ->
-                    Log.d(TAG, "oneTimePurchasesList: ${oneTimePurchaseState.purchasesList} ")
-                    Log.d(TAG, "oneTimeOfferList: ${oneTimePurchaseState.offers} ")
-                    _state.update {
-                        it.copy(
-                            lifetimePurchased = oneTimePurchaseState.purchasesList.contains("android.test.purchased"),
-                            oneTimePrice = PurchaseKit.oneTimePurchaseHelper.getBillingPrice("android.test.purchased")
-                        )
-                    }
-                }
-            }
-
-            launch {
-                PurchaseKit.subscriptionHelper.subscriptionState.collectLatest { subscriptionState ->
-                    Log.d(TAG, "subscriptionPurchasesList: ${subscriptionState.purchasesList} ")
-                    Log.d(TAG, "subscriptionOffersList: ${subscriptionState.offers} ")
-                    Log.d(TAG, "isMonthlyPurchased: ${subscriptionState.purchasesList.contains("monthly")} ")
-                    Log.d(TAG, "isYearlyPurchased: ${subscriptionState.purchasesList.contains("yearly")} ")
+                PurchaseKit.premiumHelper.premiumState.collectLatest { premiumState ->
+                    Log.d(TAG, "AllPurchasesList: ${premiumState.allPurchases} ")
+                    Log.d(TAG, "subscriptionPurchasesList: ${premiumState.subscriptionPurchases} ")
+                    Log.d(TAG, "LifeTimePurchasesList: ${premiumState.oneTimePurchases} ")
+                    Log.d(TAG, "LifeTimeOffersList: ${premiumState.oneTimeOffers} ")
+                    Log.d(TAG, "subscriptionOffersList: ${premiumState.subscriptionOffers} ")
+                    Log.d(
+                        TAG,
+                        "isMonthlyPurchased: ${premiumState.allPurchases.contains("monthly")} "
+                    )
+                    Log.d(
+                        TAG,
+                        "isYearlyPurchased: ${premiumState.allPurchases.contains("yearly")} "
+                    )
 
 
-                    val monthly = PurchaseKit.subscriptionHelper.getBillingPrice("monthly")
-                    val yearly = PurchaseKit.subscriptionHelper.getBillingPrice("yearly")
+                    val monthly = PurchaseKit.premiumHelper.getBillingPrice("monthly")
+                    val yearly = PurchaseKit.premiumHelper.getBillingPrice("yearly")
 
 
                     when (monthly.type) {
@@ -103,7 +96,9 @@ class MainViewModel : ViewModel() {
                     _state.update {
 
                         it.copy(
-                            subscriptionPurchasesList = subscriptionState.purchasesList,
+                            lifetimePurchased = premiumState.allPurchases.contains("android.test.purchased"),
+                            oneTimePrice = PurchaseKit.premiumHelper.getBillingPrice("android.test.purchased").mainOfferText?: "",
+                            subscriptionPurchasesList = premiumState.subscriptionPurchases,
                             monthlyPrice = "${monthly.mainOfferText}",
                             yearlyPrice = "${yearly.mainOfferText}",
                         )
@@ -130,7 +125,7 @@ class MainViewModel : ViewModel() {
                 "Cancel Subscription"
 
             purchases.isNotEmpty() &&
-                    PurchaseKit.subscriptionHelper.isSubscriptionUpdateSupported() ->
+                    PurchaseKit.premiumHelper.isSubscriptionUpdateSupported() ->
                 "Update Subscription"
 
             else -> state.value.buttonText
@@ -141,10 +136,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun loadProducts(activity: Activity,) {
-        PurchaseKit.subscriptionHelper.initBilling(activity,
-            removeAdsIds = listOf("monthly", "yearly"),
-            featureIds = listOf())
+    fun loadProducts(activity: Activity) {
+        PurchaseKit.premiumHelper.initBilling(
+            activity,
+            lifetimeProductIds = listOf("android.test.purchased"),
+            lifetimeFeatureIds = listOf(),
+            subscriptionProductIds = listOf("monthly", "yearly"),
+            subscriptionFeatureIds = listOf()
+        )
     }
 
 
@@ -160,7 +159,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun purchase(activity: Activity) {
-        PurchaseKit.subscriptionHelper.purchase(
+        PurchaseKit.premiumHelper.purchase(
             activity,
             selectedId(),
             isForUpdatePlan = false,
@@ -170,7 +169,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun purchaseProduct(activity: Activity) {
-        PurchaseKit.oneTimePurchaseHelper.purchaseProduct(
+        PurchaseKit.premiumHelper.purchase(
             activity,
             productId = "android.test.purchased",
             onUserDismissedPaywall = {
