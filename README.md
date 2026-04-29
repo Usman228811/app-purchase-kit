@@ -12,7 +12,7 @@ To integrate the Monetization Kit into your project, include the following in yo
 
 ```kotlin
 dependencies {
-    implementation("com.github.Usman228811:app-purchase-kit:1.1.0")
+    implementation("com.github.Usman228811:app-purchase-kit:1.1.1")
 }
 ```
 
@@ -41,8 +41,8 @@ PurchaseKit.init(this)
 ## Premium Billing
 
 ```kotlin
-val isLifetimePurchased = AdKit.adKitPref.isLifeTimePurchased // if your id is in lifetimeProductIds
-val isSubscribed = AdKit.adKitPref.isAppSubscribed // if your id is in subscriptionProductIds
+val isLifetimePurchased = AdKit.adKitPref.isLifeTimePurchased 
+val isSubscribed = AdKit.adKitPref.isAppSubscribed 
 val isPremium = AdKit.adKitPref.isAppPurchased
 ```
 
@@ -165,13 +165,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun loadProducts(activity: Activity) {
+   fun loadProducts(activity: Activity) {
         PurchaseKit.premiumHelper.initBilling(
             activity,
-            lifetimeProductIds = listOf("android.test.purchased"),
-            lifetimeFeatureIds = listOf(),
-            subscriptionProductIds = listOf("monthly", "yearly"),
-            subscriptionFeatureIds = listOf()
+            items = listOf(
+                BillingItem.Lifetime(productId = "android.test.purchased", type = BillingItem.Type.REMOVE_ADS),
+                BillingItem.Subscription(productId = "monthly", type = BillingItem.Type.REMOVE_ADS),
+                BillingItem.Subscription(productId = "yearly", type = BillingItem.Type.REMOVE_ADS),
+            ),
         )
     }
 
