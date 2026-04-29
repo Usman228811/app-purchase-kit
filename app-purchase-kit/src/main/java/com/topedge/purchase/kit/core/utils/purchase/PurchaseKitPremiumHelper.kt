@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlin.collections.forEach
 
 data class PremiumAccessState(
     val isPremium: Boolean = false,
@@ -28,6 +29,24 @@ enum class PremiumProductType {
     ONE_TIME,
     SUBSCRIPTION,
     UNKNOWN
+}
+
+
+sealed class BillingItem {
+    data class Lifetime(
+        val productId: String,
+        val type: Type
+    ) : BillingItem()
+
+    data class Subscription(
+        val productId: String,
+        val type: Type
+    ) : BillingItem()
+
+    enum class Type {
+        REMOVE_ADS,
+        FEATURE
+    }
 }
 
 class PurchaseKitPremiumHelper private constructor(
@@ -60,31 +79,46 @@ class PurchaseKitPremiumHelper private constructor(
     )
     fun initBilling(
         activity: Activity,
-        lifetimeProductIds: List<String> = emptyList(),
-        lifetimeFeatureIds: List<String> = emptyList(),
-        subscriptionProductIds: List<String> = emptyList(),
-        subscriptionFeatureIds: List<String> = emptyList()
+        items: List<BillingItem>
     ) {
-        if (lifetimeProductIds.isNotEmpty() || lifetimeFeatureIds.isNotEmpty()) {
+
+        val lifetimeRemoveAds = mutableListOf<String>()
+        val lifetimeFeatures = mutableListOf<String>()
+        val subRemoveAds = mutableListOf<String>()
+        val subFeatures = mutableListOf<String>()
+
+        items.forEach { item ->
+            when (item) {
+                is BillingItem.Lifetime -> {
+                    when (item.type) {
+                        BillingItem.Type.REMOVE_ADS -> lifetimeRemoveAds.add(item.productId)
+                        BillingItem.Type.FEATURE -> lifetimeFeatures.add(item.productId)
+                    }
+                }
+                is BillingItem.Subscription -> {
+                    when (item.type) {
+                        BillingItem.Type.REMOVE_ADS -> subRemoveAds.add(item.productId)
+                        BillingItem.Type.FEATURE -> subFeatures.add(item.productId)
+                    }
+                }
+            }
+        }
+
+        if (lifetimeRemoveAds.isNotEmpty() || lifetimeFeatures.isNotEmpty()) {
             purchaseHelper.initBilling(
-                removeAdsIds = lifetimeProductIds,
-                featureIds = lifetimeFeatureIds
+                removeAdsIds = lifetimeRemoveAds,
+                featureIds = lifetimeFeatures
             )
         }
 
-        if (subscriptionProductIds.isNotEmpty() || subscriptionFeatureIds.isNotEmpty()) {
+        if (subRemoveAds.isNotEmpty() || subFeatures.isNotEmpty()) {
             subscriptionHelper.initBilling(
                 activity = activity,
-                removeAdsIds = subscriptionProductIds,
-                featureIds = subscriptionFeatureIds
+                removeAdsIds = subRemoveAds,
+                featureIds = subFeatures
             )
         }
     }
-
-    fun hasPremiumAccess(): Boolean = premiumState.value.isPremium
-
-    fun hasProduct(productId: String): Boolean = premiumState.value.allPurchases.contains(productId)
-
     fun getProductType(productId: String): PremiumProductType {
         return when {
             premiumState.value.oneTimeOffers.any { it.id == productId } -> PremiumProductType.ONE_TIME

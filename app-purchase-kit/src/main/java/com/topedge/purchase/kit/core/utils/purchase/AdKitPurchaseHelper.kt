@@ -29,12 +29,6 @@ class AdKitPurchaseHelper private constructor(
     ) =
         purchase(activity, productId, onUserDismissedPaywall)
 
-    fun getBillingPrice(
-        productId: String,
-    ): String {
-        return init.getBillingPrice(productId)
-    }
-
     companion object {
         @Volatile
         private var instance: AdKitPurchaseHelper? = null

@@ -61,19 +61,6 @@ class InitBillingUseCase private constructor(
         })
     }
 
-    fun getBillingPrice(
-        productId: String,
-    ): String {
-        val offers = ucState.value.offers
-
-        if (offers.isEmpty()) {
-            return ""
-        }
-
-        val myOffer = offers.firstOrNull { it.id == productId }
-        val offer = myOffer as? PremiumOffer.InAppProduct
-        return offer?.price?.formattedPrice ?: ""
-    }
 
     companion object {
         @Volatile

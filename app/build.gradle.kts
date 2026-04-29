@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.plant.identifier.scanplant"
+        applicationId = "com.mpa.charging.animation.app"
 //        applicationId = "com.example.inapp"
         minSdk = 24
         targetSdk = 35

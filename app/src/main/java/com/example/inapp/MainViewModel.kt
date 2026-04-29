@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.topedge.purchase.kit.core.utils.init.PurchaseKit
+import com.topedge.purchase.kit.core.utils.purchase.BillingItem
 import com.topedge.purchase.kit.core.utils.purchase.PurchaseKitPremiumHelper
 import com.topedge.purchase.kit.domain.model.OfferType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -96,8 +97,8 @@ class MainViewModel : ViewModel() {
                     _state.update {
 
                         it.copy(
-                            lifetimePurchased = premiumState.allPurchases.contains("android.test.purchased"),
-                            oneTimePrice = PurchaseKit.premiumHelper.getBillingPrice("android.test.purchased").mainOfferText?: "",
+                            lifetimePurchased = premiumState.allPurchases.contains("remove_ads"),
+                            oneTimePrice = PurchaseKit.premiumHelper.getBillingPrice("remove_ads").mainOfferText?: "",
                             subscriptionPurchasesList = premiumState.subscriptionPurchases,
                             monthlyPrice = "${monthly.mainOfferText}",
                             yearlyPrice = "${yearly.mainOfferText}",
@@ -139,10 +140,11 @@ class MainViewModel : ViewModel() {
     fun loadProducts(activity: Activity) {
         PurchaseKit.premiumHelper.initBilling(
             activity,
-            lifetimeProductIds = listOf("android.test.purchased"),
-            lifetimeFeatureIds = listOf(),
-            subscriptionProductIds = listOf("monthly", "yearly"),
-            subscriptionFeatureIds = listOf()
+            items = listOf(
+                BillingItem.Lifetime(productId = "remove_ads", type = BillingItem.Type.REMOVE_ADS),
+                BillingItem.Subscription(productId = "monthly", type = BillingItem.Type.REMOVE_ADS),
+                BillingItem.Subscription(productId = "yearly", type = BillingItem.Type.REMOVE_ADS),
+            ),
         )
     }
 
@@ -171,7 +173,7 @@ class MainViewModel : ViewModel() {
     fun purchaseProduct(activity: Activity) {
         PurchaseKit.premiumHelper.purchase(
             activity,
-            productId = "android.test.purchased",
+            productId = "remove_ads",
             onUserDismissedPaywall = {
                 Log.d(TAG, "one-time-purchase: paywall cancelled")
             })
