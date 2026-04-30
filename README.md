@@ -241,4 +241,4 @@ Button(
 
 ---
 
-This documentation provides a clean, organized, and visually appealing guide to using the SDK in your Android app. Each section is clearly separated, with consistent formatting and detailed explanations for seamless integration. Kotlin code blocks are now explicitly marked with triple backticks and the `kotlin` language identifier.
+This documentation provides a clean, organized, and visually appealing guide to using the SDK in your Android app. Each section is clearly separated, with consistent formatting and detailed explanations for seamless integration.
