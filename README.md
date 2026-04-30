@@ -40,12 +40,6 @@ PurchaseKit.init(this)
 
 ## Premium Billing
 
-```kotlin
-val isLifetimePurchased = AdKit.adKitPref.isLifeTimePurchased 
-val isSubscribed = AdKit.adKitPref.isAppSubscribed 
-val isPremium = AdKit.adKitPref.isAppPurchased
-```
-
 ### ViewModel for Billing
 
 ```kotlin
