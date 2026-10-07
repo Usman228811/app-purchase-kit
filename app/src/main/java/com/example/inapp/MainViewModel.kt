@@ -7,13 +7,23 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.topedge.purchase.kit.core.utils.init.PurchaseKit
 import com.topedge.purchase.kit.core.utils.purchase.BillingItem
-import com.topedge.purchase.kit.core.utils.purchase.PurchaseKitPremiumHelper
 import com.topedge.purchase.kit.domain.model.OfferType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+
+
+val LIFE_TIME_ID = "one_time_purchase_id"
+var MONTHLY_ID = "unlockphotos"
+var YEARLY_ID = "duplicate_scan"
+
+//var MONTHLY_ID = "unlockphotos:unlockphotos"
+//var YEARLY_ID = "duplicate_scan:duplicate-scan-unllock"
+
+
 
 class MainViewModelFactory : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -39,8 +49,8 @@ class MainViewModel : ViewModel() {
     val state = _state.asStateFlow()
 
     private val subscriptionMap = mapOf(
-        0 to "monthly",
-        1 to "yearly"
+        0 to MONTHLY_ID,
+        1 to YEARLY_ID
     )
 
     companion object {
@@ -60,16 +70,16 @@ class MainViewModel : ViewModel() {
                     Log.d(TAG, "subscriptionOffersList: ${premiumState.subscriptionOffers} ")
                     Log.d(
                         TAG,
-                        "isMonthlyPurchased: ${premiumState.allPurchases.contains("monthly")} "
+                        "isMonthlyPurchased: ${premiumState.allPurchases.contains(MONTHLY_ID)} "
                     )
                     Log.d(
                         TAG,
-                        "isYearlyPurchased: ${premiumState.allPurchases.contains("yearly")} "
+                        "isYearlyPurchased: ${premiumState.allPurchases.contains(YEARLY_ID)} "
                     )
 
 
-                    val monthly = PurchaseKit.premiumHelper.getBillingPrice("monthly")
-                    val yearly = PurchaseKit.premiumHelper.getBillingPrice("yearly")
+                    val monthly = PurchaseKit.premiumHelper.getBillingPrice(MONTHLY_ID)
+                    val yearly = PurchaseKit.premiumHelper.getBillingPrice(YEARLY_ID)
 
 
                     when (monthly.type) {
@@ -97,8 +107,8 @@ class MainViewModel : ViewModel() {
                     _state.update {
 
                         it.copy(
-                            lifetimePurchased = premiumState.allPurchases.contains("remove_ads"),
-                            oneTimePrice = PurchaseKit.premiumHelper.getBillingPrice("remove_ads").mainOfferText?: "",
+                            lifetimePurchased = premiumState.allPurchases.contains(LIFE_TIME_ID),
+                            oneTimePrice = PurchaseKit.premiumHelper.getBillingPrice(LIFE_TIME_ID).mainOfferText?: "",
                             subscriptionPurchasesList = premiumState.subscriptionPurchases,
                             monthlyPrice = "${monthly.mainOfferText}",
                             yearlyPrice = "${yearly.mainOfferText}",
@@ -127,7 +137,7 @@ class MainViewModel : ViewModel() {
 
             purchases.isNotEmpty() &&
                     PurchaseKit.premiumHelper.isSubscriptionUpdateSupported() ->
-                "Update Subscription"
+                "Subscribe"
 
             else -> state.value.buttonText
         }
@@ -141,9 +151,9 @@ class MainViewModel : ViewModel() {
         PurchaseKit.premiumHelper.initBilling(
             activity,
             items = listOf(
-                BillingItem.Lifetime(productId = "remove_ads", type = BillingItem.Type.REMOVE_ADS),
-                BillingItem.Subscription(productId = "monthly", type = BillingItem.Type.REMOVE_ADS),
-                BillingItem.Subscription(productId = "yearly", type = BillingItem.Type.REMOVE_ADS),
+                BillingItem.Lifetime(productId = LIFE_TIME_ID, type = BillingItem.Type.REMOVE_ADS),
+                BillingItem.Subscription(productId = MONTHLY_ID, type = BillingItem.Type.REMOVE_ADS),
+                BillingItem.Subscription(productId = YEARLY_ID, type = BillingItem.Type.REMOVE_ADS),
             ),
         )
     }
@@ -173,7 +183,7 @@ class MainViewModel : ViewModel() {
     fun purchaseProduct(activity: Activity) {
         PurchaseKit.premiumHelper.purchase(
             activity,
-            productId = "remove_ads",
+            productId = LIFE_TIME_ID,
             onUserDismissedPaywall = {
                 Log.d(TAG, "one-time-purchase: paywall cancelled")
             })

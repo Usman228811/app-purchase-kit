@@ -9,8 +9,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.mpa.charging.animation.app"
-//        applicationId = "com.example.inapp"
+        applicationId = "com.photocleaner.swipetodelete.psma"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

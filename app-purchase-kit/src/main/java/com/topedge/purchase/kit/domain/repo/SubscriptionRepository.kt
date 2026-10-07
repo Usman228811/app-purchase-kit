@@ -4,6 +4,13 @@ import android.app.Activity
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 
+sealed interface BillingQueryResult
+
+data class PlayBillingQueryResult(
+    val skuList: Map<String, ProductDetails>,
+    val productList: List<ProductDetails>
+) : BillingQueryResult
+
 interface SubscriptionRepository {
     fun setBillingListener(activity: Activity,removeAdsIds: List<String>,
                            featureIds: List<String>, listener: SubscriptionListener?)
@@ -20,7 +27,7 @@ interface SubscriptionRepository {
 }
 
 interface SubscriptionListener {
-    fun onQueryProductSuccess(skuList: Map<String, ProductDetails>, productList: List<ProductDetails>)
+    fun onQueryProductSuccess(result: BillingQueryResult)
     fun subscriptionItemNotFound()
     fun onSubscriptionPurchasedFetched(purchasesList:List<String>)
 }
