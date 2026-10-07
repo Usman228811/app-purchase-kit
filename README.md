@@ -11,9 +11,13 @@ A comprehensive Kotlin library for Android (Jetpack Compose + XML), designed to 
 To integrate the Monetization Kit into your project, include the following in your app's `build.gradle`:
 
 ```kotlin
-dependencies {
-    implementation("com.github.Usman228811:app-purchase-kit:1.1.1")
-}
+    dependencies {
+        // for simple play billing
+        implementation("com.github.Usman228811:app-purchase-kit:1.1.2-rc")
+    
+        //for revenue cat billing
+        implementation("com.github.Usman228811:app-purchase-kit:1.1.2-rc")
+    }
 ```
 
 ### Configure JitPack Repository
@@ -33,7 +37,13 @@ dependencyResolutionManagement {
 Initialize the SDK in your `Application` class's `onCreate` method:
 
 ```kotlin
-PurchaseKit.init(this)
+PurchaseKit.init(
+        this,
+        // if given then it will use revenuecat at backend otherwise it will simply use playbilling
+        revenueCatBuilder = RevenueCatBuilder(
+                revenueCatKey = "", //revenuecat key
+                offeringKey = "" // revenuecat offering id
+    ))
 ```
 
 ---
