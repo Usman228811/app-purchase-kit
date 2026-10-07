@@ -1,18 +1,24 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+//    id("org.jetbrains.kotlin.android")
     id("maven-publish")
 }
 
 android {
     namespace = "com.topedge.purchase.kit"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 24
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 
     buildTypes {
@@ -25,11 +31,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
@@ -52,8 +55,8 @@ afterEvaluate {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.16.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.core:core-ktx:1.19.1")
+    implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("com.android.billingclient:billing-ktx:8.0.0")
 
 }

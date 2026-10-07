@@ -1,10 +1,10 @@
 [versions]
-agp = "8.12.2"
-kotlin = "2.2.10"
-coreKtx = "1.16.0"
-lifecycleRuntimeKtx = "2.9.3"
-activityCompose = "1.10.1"
-composeBom = "2025.08.01"
+agp = "9.4.1"
+kotlin = "2.4.20"
+coreKtx = "1.19.1"
+lifecycleRuntimeKtx = "2.11.0"
+activityCompose = "1.13.0"
+composeBom = "2026.09.00"
 
 
 [libraries]
@@ -20,7 +20,7 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+#kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 
