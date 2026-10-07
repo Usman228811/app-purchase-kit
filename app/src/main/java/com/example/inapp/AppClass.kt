@@ -11,10 +11,10 @@ class AppClass : Application() {
 
         PurchaseKit.init(
             this,
-//            revenueCatBuilder = RevenueCatBuilder(
-//                revenueCatKey = "goog_uGnCSFTTAMJNpLlYoGCCQMNsVNd",
-//                offeringKey = "default_offerings"
-//            )
+            revenueCatBuilder = RevenueCatBuilder(
+                revenueCatKey = "goog_uGnCSFTTAMJNpLlYoGCCQMNsVNd",
+                offeringKey = "default_offerings"
+            )
         )
     }
 }

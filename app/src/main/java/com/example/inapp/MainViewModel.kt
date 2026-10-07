@@ -17,11 +17,11 @@ import kotlinx.coroutines.launch
 
 
 val LIFE_TIME_ID = "one_time_purchase_id"
-var MONTHLY_ID = "unlockphotos"
-var YEARLY_ID = "duplicate_scan"
+//var MONTHLY_ID = "unlockphotos"
+//var YEARLY_ID = "duplicate_scan"
 
-//var MONTHLY_ID = "unlockphotos:unlockphotos"
-//var YEARLY_ID = "duplicate_scan:duplicate-scan-unllock"
+var MONTHLY_ID = "unlockphotos:unlockphotos"
+var YEARLY_ID = "duplicate_scan:duplicate-scan-unllock"
 
 
 
