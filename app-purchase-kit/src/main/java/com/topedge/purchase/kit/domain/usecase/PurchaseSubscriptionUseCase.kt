@@ -3,12 +3,15 @@ package com.topedge.purchase.kit.domain.usecase
 import android.app.Activity
 import android.content.Context
 import com.android.billingclient.api.ProductDetails
+import com.revenuecat.purchases.Package
+import com.topedge.purchase.kit.data.impl.RCSubscriptionRepositoryImpl
 import com.topedge.purchase.kit.data.impl.SubscriptionRepositoryImpl
 import com.topedge.purchase.kit.domain.repo.SubscriptionRepository
 
 
 class PurchaseSubscriptionUseCase private constructor(
-    private val repository: SubscriptionRepository
+    private val repositoryPlay: SubscriptionRepository,
+    private val repositoryRc: SubscriptionRepository,
 ) {
 
     companion object {
@@ -19,24 +22,35 @@ class PurchaseSubscriptionUseCase private constructor(
         fun getInstance(
             context: Context
         ): PurchaseSubscriptionUseCase {
-            val repo = SubscriptionRepositoryImpl.getInstance(context)
+            val repoPlay = SubscriptionRepositoryImpl.getInstance(context)
+            val repoRc = RCSubscriptionRepositoryImpl.getInstance(context)
             return instance ?: synchronized(this) {
                 instance ?: PurchaseSubscriptionUseCase(
-                    repo
+                    repoPlay, repoRc
                 ).also { instance = it }
             }
         }
     }
 
 
-    operator fun invoke(activity: Activity,product: ProductDetails,onUserDismissedPaywall :(()->Unit) ?= null) = repository.purchaseProduct(activity, product, onUserDismissedPaywall)
+    fun purchasePlayProduct(
+        activity: Activity,
+        product: ProductDetails,
+        onUserDismissedPaywall: (() -> Unit)? = null
+    ) = repositoryPlay.purchaseProduct(activity, product, onUserDismissedPaywall)
+
+    fun purchaseRcProduct(
+        activity: Activity,
+        product: Package,
+        onUserDismissedPaywall: (() -> Unit)? = null
+    ) = repositoryRc.purchaseProduct(activity, product, onUserDismissedPaywall)
 
     fun changeSubscriptionPlan(activity: Activity,product: ProductDetails) {
-        repository.changeSubscriptionPlan(activity,product)
+        repositoryPlay.changeSubscriptionPlan(activity,product)
     }
 
     fun viewUrl(activity: Activity, url: String) {
-        repository.viewUrl(activity, url)
+        repositoryPlay.viewUrl(activity, url)
     }
 
 }

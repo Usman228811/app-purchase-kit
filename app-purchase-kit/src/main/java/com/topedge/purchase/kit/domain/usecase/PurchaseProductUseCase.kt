@@ -2,22 +2,31 @@ package com.topedge.purchase.kit.domain.usecase
 
 import android.app.Activity
 import com.topedge.purchase.kit.domain.repo.BillingRepository
+
 class PurchaseProductUseCase private constructor(
-    private val billingRepository: BillingRepository
+    private val billingRepositoryPlay: BillingRepository,
+    private val billingRepositoryRC: BillingRepository,
 ) {
-    operator fun invoke(
+    fun purchasePlayProduct(
         activity: Activity?,
         productId: String, onUserDismissedPaywall: (() -> Unit)? = null
-    ) = billingRepository.purchaseProduct(activity, productId, onUserDismissedPaywall)
+    ) = billingRepositoryPlay.purchaseProduct(activity, productId, onUserDismissedPaywall)
+
+    fun purchaseRcProduct(
+        activity: Activity?,
+        productId: String, onUserDismissedPaywall: (() -> Unit)? = null
+    ) = billingRepositoryRC.purchaseProduct(activity, productId, onUserDismissedPaywall)
 
     companion object {
         @Volatile
         private var instance: PurchaseProductUseCase? = null
 
-        fun getInstance(billingRepository: BillingRepository): PurchaseProductUseCase {
-
+        fun getInstance(
+            playRepository: BillingRepository,
+            rcRepository: BillingRepository
+        ): PurchaseProductUseCase {
             return instance ?: synchronized(this) {
-                instance ?: PurchaseProductUseCase(billingRepository).also { instance = it }
+                instance ?: PurchaseProductUseCase(playRepository, rcRepository).also { instance = it }
             }
         }
     }

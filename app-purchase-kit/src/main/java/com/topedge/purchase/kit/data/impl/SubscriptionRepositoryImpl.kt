@@ -16,6 +16,7 @@ import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.revenuecat.purchases.Package
 import com.topedge.purchase.kit.core.utils.init.PurchaseKit
 import com.topedge.purchase.kit.domain.repo.PlayBillingQueryResult
 import com.topedge.purchase.kit.domain.repo.SubscriptionListener
@@ -61,6 +62,12 @@ class SubscriptionRepositoryImpl private constructor(
 
     override fun purchaseProduct(
         activity: Activity,
+        skuDetails: Package,
+        onUserDismissedPaywall: (() -> Unit)?,
+    ) = Unit
+
+    override fun purchaseProduct(
+        activity: Activity,
         skuDetails: ProductDetails,
         onUserDismissedPaywall: (() -> Unit)?,
     ) {
@@ -91,6 +98,8 @@ class SubscriptionRepositoryImpl private constructor(
             context.showTryAgain(activity)
         }
     }
+
+    override fun changeSubscriptionPlan(activity: Activity, skuDetails: Package) = Unit
 
     override fun changeSubscriptionPlan(
         activity: Activity,

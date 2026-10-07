@@ -2,6 +2,7 @@ package com.topedge.purchase.kit.core.utils.purchase
 
 import android.app.Activity
 import android.app.Application
+import com.topedge.purchase.kit.core.utils.init.PurchaseKit
 import com.topedge.purchase.kit.domain.model.OfferTexts
 import com.topedge.purchase.kit.domain.model.OfferType
 import com.topedge.purchase.kit.domain.model.PremiumOffer
@@ -55,6 +56,12 @@ class PurchaseKitPremiumHelper private constructor(
 ) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val billingProvider: PremiumBillingProvider
+        get() = if (PurchaseKit.getRevenueCatKey().isNotEmpty()) {
+            PremiumBillingProvider.REVENUE_CAT
+        } else {
+            PremiumBillingProvider.PLAY
+        }
 
     val premiumState: StateFlow<PremiumAccessState> = combine(
         purchaseHelper.oneTimePurchaseState,
@@ -82,6 +89,7 @@ class PurchaseKitPremiumHelper private constructor(
         items: List<BillingItem>
     ) {
 
+        val provider = billingProvider
         val lifetimeRemoveAds = mutableListOf<String>()
         val lifetimeFeatures = mutableListOf<String>()
         val subRemoveAds = mutableListOf<String>()
@@ -107,7 +115,8 @@ class PurchaseKitPremiumHelper private constructor(
         if (lifetimeRemoveAds.isNotEmpty() || lifetimeFeatures.isNotEmpty()) {
             purchaseHelper.initBilling(
                 removeAdsIds = lifetimeRemoveAds,
-                featureIds = lifetimeFeatures
+                featureIds = lifetimeFeatures,
+                provider = provider
             )
         }
 
@@ -115,7 +124,8 @@ class PurchaseKitPremiumHelper private constructor(
             subscriptionHelper.initBilling(
                 activity = activity,
                 removeAdsIds = subRemoveAds,
-                featureIds = subFeatures
+                featureIds = subFeatures,
+                provider = provider
             )
         }
     }
